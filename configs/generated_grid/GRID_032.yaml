@@ -1,0 +1,19 @@
+experiment_id: GRID_032
+track: corkscrew
+agent_version: baseline_rule_v1
+state_version: baseline_raw_v1
+policy_version: baseline_rule_v1
+reward_version: none_rule_based
+algorithm: grid_search
+num_runs: 3
+seed: 42
+hyperparameters:
+  target_speed: 80
+  steer_gain: 1.0
+  centering_gain: 0.5
+  brake_threshold: 0.6
+  gentle_speed: 40
+  sharp_speed: 30
+  straight_speed: 95
+  acceleration_limit: 0.8
+  braking_intensity: 0.25

@@ -1,0 +1,15 @@
+target_speed:
+  values: [70, 80, 90]
+corner_speed:
+  values: [35, 40, 45]
+braking_threshold:
+  values: [0.5, 0.6, 0.7]
+steering_gain:
+  values: [0.8, 1.0, 1.2]
+
+random_search_ranges:
+  target_speed: [70, 100]
+  corner_speed: [30, 55]
+  braking_threshold: [0.4, 0.8]
+  steering_gain: [0.8, 1.3]
+

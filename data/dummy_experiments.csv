@@ -1,4 +1,4 @@
-experiment_id,target_speed,corner_speed,braking_threshold,steering_gain,average_lap_time,completion_rate,crash_count,off_track_count,runtime_per_run_seconds
+experiment_id,target_speed,gentle_speed,brake_threshold,steer_gain,average_lap_time,completion_rate,crash_count,off_track_count,runtime_per_run_seconds
 EXP_001,80,40,0.6,1.0,145,0.67,2,4,180
 EXP_002,90,45,0.6,1.0,138,0.60,3,5,175
 EXP_003,75,35,0.7,1.1,150,1.00,0,1,190
@@ -7,4 +7,3 @@ EXP_005,95,50,0.5,0.9,132,0.40,5,7,170
 EXP_006,82,38,0.7,1.0,142,0.95,1,1,188
 EXP_007,88,42,0.6,1.15,136,0.85,2,3,181
 EXP_008,78,36,0.75,1.05,148,1.00,0,0,192
-

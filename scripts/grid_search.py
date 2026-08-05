@@ -10,17 +10,20 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE_CONFIG = ROOT / "configs" / "baseline_config.yaml"
+SEARCH_SPACE = ROOT / "configs" / "search_space.yaml"
 OUTPUT_DIR = ROOT / "configs" / "generated_grid"
 
 
 def main() -> None:
     with BASE_CONFIG.open() as file:
         base = yaml.safe_load(file)
+    with SEARCH_SPACE.open() as file:
+        search_space = yaml.safe_load(file)
 
-    target_speeds = [70, 80, 90]
-    gentle_speeds = [40, 45, 50]
-    brake_thresholds = [0.5, 0.6, 0.7]
-    steer_gains = [0.8, 1.0, 1.2]
+    target_speeds = search_space["target_speed"]["values"]
+    gentle_speeds = search_space["gentle_speed"]["values"]
+    brake_thresholds = search_space["brake_threshold"]["values"]
+    steer_gains = search_space["steer_gain"]["values"]
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     count = 0
@@ -52,4 +55,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

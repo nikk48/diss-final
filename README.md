@@ -89,6 +89,10 @@ Earlier Part B rows that had already been appended to `data/run_log.csv` were
 preserved in `data/part_b_imports/run_log_partb_legacy_rows.csv` and removed
 from the active Part C run log.
 
+Final dissertation live baseline uses only verified EXP_001 rule_based rows.
+Earlier torcs_live diagnostic rows are archived and excluded from dissertation
+tables.
+
 ## Analyse Results
 
 Run each view separately:
@@ -174,7 +178,7 @@ python scripts/optuna_tuning.py --mode live --trials 3 --runs 1 --profile core -
 
 After the latest analysis:
 
-- live baseline best lap: `195.766s` from valid live TORCS rows
+- verified live baseline best lap: `196.726s` from EXP_001 rule_based rows
 - imported Part B PPO best lap: `106.892s`
 - Part B PPO completion rate: `1.00`
 - live analysis excluded three zero-lap connection attempts

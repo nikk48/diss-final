@@ -1,0 +1,24 @@
+experiment_id: OPTUNA_LIVE_001_STRESS_008
+track: corkscrew
+agent_version: baseline_rule_v1
+state_version: baseline_raw_v1
+policy_version: baseline_rule_v1
+reward_version: none_rule_based
+algorithm: optuna_stress
+num_runs: 3
+seed: 142
+hyperparameters:
+  target_speed: 77.491
+  steer_gain: 0.989
+  centering_gain: 0.5
+  brake_threshold: 0.646
+  gentle_speed: 49.261
+  sharp_speed: 39.261
+  straight_speed: 92.491
+  acceleration_limit: 0.8
+  braking_intensity: 0.25
+base_experiment_id: OPTUNA_LIVE_001
+source: stress_dummy
+stress_type: steer_gain_minus_0_05
+stress_parameter: steer_gain
+stress_value: 0.989

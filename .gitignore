@@ -4,4 +4,8 @@ __pycache__/
 .DS_Store
 .ipynb_checkpoints/
 logs/*.log
+logs/**/*.log
 .matplotlib/
+oututv2/
+part_c_dissertation_csv_outputs/
+*.zip

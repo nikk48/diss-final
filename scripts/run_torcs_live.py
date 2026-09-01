@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from agents.baseline_rule_agent import build_agent  # noqa: E402
+from scripts.result_utils import source_for_run, telemetry_path  # noqa: E402
 from scripts.run_experiment import append_run_log, load_config, summarise_rows  # noqa: E402
 from scripts.telemetry_logger import TelemetryLogger  # noqa: E402
 from scripts.torcs_udp_client import TorcsUdpClient  # noqa: E402
@@ -65,11 +66,13 @@ def run_live_once(
 ) -> dict[str, Any]:
     hyperparameters = config["hyperparameters"]
     agent = build_agent(hyperparameters)
-    telemetry_path = (
-        ROOT
-        / "data"
-        / "telemetry_logs"
-        / f"{config['experiment_id']}_live_run_{run_number}.csv"
+    algorithm = config.get("algorithm", "rule_based")
+    source = source_for_run(algorithm, live=True)
+    run_telemetry_path = telemetry_path(
+        ROOT,
+        config["experiment_id"],
+        source,
+        run_number,
     )
 
     process = psutil.Process()
@@ -92,7 +95,7 @@ def run_live_once(
         connect_attempts=connect_attempts,
     )
     try:
-        with TelemetryLogger(telemetry_path) as telemetry:
+        with TelemetryLogger(run_telemetry_path) as telemetry:
             step = 0
             missed_frames = 0
             startup_deadline = time.perf_counter() + startup_timeout
@@ -180,12 +183,13 @@ def run_live_once(
     return {
         "experiment_id": config["experiment_id"],
         "date_time": datetime.now(timezone.utc).isoformat(),
+        "source": source,
         "track": config["track"],
         "agent_version": config["agent_version"],
         "state_version": config["state_version"],
         "policy_version": config["policy_version"],
         "reward_version": config["reward_version"],
-        "algorithm": "torcs_live",
+        "algorithm": algorithm,
         "run_number": run_number,
         "seed": int(config.get("seed", 42)) + run_number,
         "target_speed": hyperparameters["target_speed"],
@@ -212,7 +216,7 @@ def run_live_once(
         "cpu_usage": round((cpu_start + cpu_end) / 2.0, 2),
         "memory_usage": round(memory_mb, 2),
         "config_path": str(config_path),
-        "telemetry_file": str(telemetry_path),
+        "telemetry_file": str(run_telemetry_path),
         "notes": "live TORCS run",
     }
 
@@ -230,6 +234,12 @@ def main() -> None:
     parser.add_argument("--max-steps", type=int, default=10000)
     parser.add_argument("--lap-distance", type=float, default=3608.45)
     parser.add_argument("--runs", type=int, default=1)
+    parser.add_argument(
+        "--run-start",
+        type=int,
+        default=1,
+        help="First run number to log; useful when repeating live runs one race at a time.",
+    )
     args = parser.parse_args()
 
     config_path = (ROOT / args.config).resolve()
@@ -250,7 +260,7 @@ def main() -> None:
             max_steps=args.max_steps,
             lap_distance=args.lap_distance,
         )
-        for run_number in range(1, args.runs + 1)
+        for run_number in range(args.run_start, args.run_start + args.runs)
     ]
 
     summary = summarise_rows(rows)

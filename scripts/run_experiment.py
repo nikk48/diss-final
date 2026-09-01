@@ -24,12 +24,18 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from agents.baseline_rule_agent import build_agent  # noqa: E402
+from scripts.result_utils import infer_source, source_for_run, telemetry_path  # noqa: E402
 from scripts.telemetry_logger import TelemetryLogger  # noqa: E402
 
 
 RUN_LOG_FIELDS = [
     "experiment_id",
     "date_time",
+    "source",
+    "base_experiment_id",
+    "stress_type",
+    "stress_parameter",
+    "stress_value",
     "track",
     "agent_version",
     "state_version",
@@ -73,11 +79,39 @@ def load_config(path: Path) -> dict[str, Any]:
 def append_run_log(row: dict[str, Any], path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     file_exists = path.exists() and path.stat().st_size > 0
+    if file_exists:
+        migrate_run_log_schema(path)
+
+    clean_row = dict(row)
+    clean_row["source"] = infer_source(clean_row)
     with path.open("a", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=RUN_LOG_FIELDS)
         if not file_exists:
             writer.writeheader()
-        writer.writerow({field: row.get(field, "") for field in RUN_LOG_FIELDS})
+        writer.writerow({field: clean_row.get(field, "") for field in RUN_LOG_FIELDS})
+
+
+def migrate_run_log_schema(path: Path) -> None:
+    """Add new run-log columns while preserving older experiment rows."""
+
+    with path.open(newline="") as file:
+        reader = csv.DictReader(file)
+        existing_fields = reader.fieldnames or []
+        rows = list(reader)
+
+    schema_matches = existing_fields == RUN_LOG_FIELDS
+    source_matches = all(row.get("source", "") == infer_source(row) for row in rows)
+    if schema_matches and source_matches:
+        return
+
+    with path.open("w", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=RUN_LOG_FIELDS)
+        writer.writeheader()
+        for row in rows:
+            if None in row:
+                row.pop(None, None)
+            row["source"] = infer_source(row)
+            writer.writerow({field: row.get(field, "") for field in RUN_LOG_FIELDS})
 
 
 def dummy_track_state(step: int, rng: random.Random) -> dict[str, Any]:
@@ -123,12 +157,12 @@ def run_dummy_once(
     rng = random.Random(seed)
     hyperparameters = config["hyperparameters"]
     agent = build_agent(hyperparameters)
-
-    telemetry_path = (
-        ROOT
-        / "data"
-        / "telemetry_logs"
-        / f"{config['experiment_id']}_run_{run_number}.csv"
+    source = source_for_run(config.get("algorithm", "rule_based"), live=False)
+    run_telemetry_path = telemetry_path(
+        ROOT,
+        config["experiment_id"],
+        source,
+        run_number,
     )
 
     decision_latencies: list[float] = []
@@ -139,7 +173,7 @@ def run_dummy_once(
     process = psutil.Process()
     cpu_start = psutil.cpu_percent(interval=None)
 
-    with TelemetryLogger(telemetry_path) as telemetry:
+    with TelemetryLogger(run_telemetry_path) as telemetry:
         for step in range(120):
             state = dummy_track_state(step, rng)
             before_decision = time.perf_counter()
@@ -183,6 +217,7 @@ def run_dummy_once(
     return {
         "experiment_id": config["experiment_id"],
         "date_time": datetime.now(timezone.utc).isoformat(),
+        "source": source,
         "track": config["track"],
         "agent_version": config["agent_version"],
         "state_version": config["state_version"],
@@ -213,7 +248,7 @@ def run_dummy_once(
         "cpu_usage": round((cpu_start + cpu_end) / 2.0, 2),
         "memory_usage": round(memory_mb, 2),
         "config_path": str(config_path),
-        "telemetry_file": str(telemetry_path),
+        "telemetry_file": str(run_telemetry_path),
         "notes": "dummy run; replace simulator with live TORCS later",
     }
 
@@ -261,4 +296,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

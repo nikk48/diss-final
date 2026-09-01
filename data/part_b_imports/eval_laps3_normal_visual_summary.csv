@@ -1,0 +1,2 @@
+source_telemetry,mode,display_mode,steps_recorded,completed_laps,lap_times_seconds,best_lap_time,max_dist,max_damage,last_step,last_curLapTime,note
+runs/eval_laps3_normal_telemetry.csv,eval,normal,15858,3,110.026;106.986;107.010,106.986,10834.70,0.0,15857,106.994,Normal visual mode reached TORCS results screen. Python client was interrupted after results because TORCS stopped sending telemetry; lap results were visible in TORCS.

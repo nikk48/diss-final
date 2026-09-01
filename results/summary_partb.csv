@@ -1,0 +1,3 @@
+experiment_id,source,method,valid_runs,completed_runs,completion_rate,best_lap_time,mean_lap_time,std_lap_time,lap_time_variance,crash_count,off_track_count,mean_runtime_per_run_seconds,mean_decision_latency_ms,mean_cpu_usage,mean_memory_usage,improvement_vs_baseline_seconds,improvement_vs_baseline_percent,rank_by_mean_lap,rank_by_balanced_score
+PARTB_PPO_OPTIMIZED,partb_imported,PPO-based optimised policy,3,3,1.0,106.892,107.29833333333333,0.4530197444801808,0.20522688888888826,0.0,0.0,618.7750000000001,0.21543333333333334,0.0,322.56333333333333,,,1,1
+PARTB_IMPORTED_3LAPS_NORMAL,partb_imported,Part B imported residual policy,1,1,1.0,106.986,108.007,0.0,0.0,0.0,0.0,324.022,0.0,0.0,0.0,,,2,2

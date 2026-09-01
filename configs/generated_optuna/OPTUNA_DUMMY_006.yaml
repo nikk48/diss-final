@@ -1,0 +1,19 @@
+experiment_id: OPTUNA_DUMMY_006
+track: corkscrew
+agent_version: baseline_rule_v1
+state_version: baseline_raw_v1
+policy_version: baseline_rule_v1
+reward_version: none_rule_based
+algorithm: optuna
+num_runs: 3
+seed: 642
+hyperparameters:
+  target_speed: 82.237
+  steer_gain: 0.947
+  centering_gain: 0.5
+  brake_threshold: 0.558
+  gentle_speed: 37.092
+  sharp_speed: 27.092
+  straight_speed: 97.237
+  acceleration_limit: 0.8
+  braking_intensity: 0.25

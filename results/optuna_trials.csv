@@ -1,0 +1,2 @@
+trial,mode,profile,experiment_id,target_speed,gentle_speed,brake_threshold,steer_gain,runs,best_lap_time,average_lap_time,completion_rate,objective_score,config_path
+1,live,coreSmall,OPTUNA_LIVE_001,77.491,49.261,0.646,1.039,1,195.526,195.526,1.0,196.169395,/Users/thenotoriouscode/Desktop/gaurav-diss-final/configs/generated_optuna/OPTUNA_LIVE_001.yaml

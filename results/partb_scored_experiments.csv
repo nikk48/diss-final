@@ -1,0 +1,3 @@
+source,experiment_id,algorithm,track,target_speed,gentle_speed,brake_threshold,steer_gain,best_lap_time,average_lap_time,completion_rate,crash_count,off_track_count,damage,lap_time_variance,runtime_per_run_seconds,decision_latency_ms,cpu_usage,memory_usage,lap_time_score,crash_score,off_track_score,damage_score,runtime_score,completion_penalty,balanced_score
+partb_imported,PARTB_PPO_OPTIMIZED,PPO-based optimised policy,corkscrew,,,,,106.892,107.29833333333333,1.0,0.0,0.0,0.0,0.2394423333333333,618.775,0.21543333333333334,0.0,322.56333333333333,0.0,0.0,0.0,0.0,1.0,0.0,0.1
+partb_imported,PARTB_IMPORTED_3LAPS_NORMAL,Part B imported residual policy,corkscrew,,,,,106.986,108.007,1.0,0.0,0.0,0.0,0.0,324.022,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.4

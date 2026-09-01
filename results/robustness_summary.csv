@@ -1,0 +1,28 @@
+source,experiment_id,algorithm,track,number_of_rows,valid_runs,completion_rate,best_lap_time,mean_lap_time,std_lap_time,lap_time_range,total_crashes,total_off_track_events,max_damage,notes
+dummy,EXP_001,rule_based,corkscrew,9,9,1.0,158.352,161.09033333333332,2.123426214609036,0.0,0,0,0.0,dummy run; replace simulator with live TORCS later
+grid_dummy,GRID_030,grid_search,corkscrew,3,3,1.0,158.352,161.09033333333332,2.123426214609036,0.0,0,0,0.0,dummy run; replace simulator with live TORCS later
+grid_dummy,GRID_040,grid_search,corkscrew,3,3,1.0,158.352,161.09033333333332,2.123426214609036,0.0,0,0,0.0,dummy run; replace simulator with live TORCS later
+grid_dummy,GRID_001,grid_search,corkscrew,3,3,1.0,162.852,165.59033333333332,2.123426214609036,0.0,0,0,0.0,dummy run; replace simulator with live TORCS later
+grid_dummy,GRID_010,grid_search,corkscrew,3,3,1.0,162.852,165.59033333333332,2.123426214609036,0.0,0,0,0.0,dummy run; replace simulator with live TORCS later
+grid_dummy,GRID_020,grid_search,corkscrew,3,3,1.0,162.852,165.59033333333332,2.123426214609036,0.0,0,0,0.0,dummy run; replace simulator with live TORCS later
+grid_live,GRID_040,grid_search,corkscrew,3,3,1.0,198.906,198.90600000000003,2.842170943040401e-14,0.0,0,0,0.0,live TORCS run
+grid_live,GRID_030,grid_search,corkscrew,3,3,1.0,199.806,199.806,0.0,0.0,0,0,0.0,live TORCS run
+live,EXP_001,torcs_live,corkscrew,5,2,0.4,195.766,196.076,0.3100000000000023,0.6200000000000045,0,0,0.0,live TORCS run
+live,EXP_001,rule_based,corkscrew,3,3,1.0,196.726,196.726,0.0,0.0,0,0,0.0,live TORCS run
+live,EXP_SAFE_001,rule_based,corkscrew,1,0,0.0,,,0.0,0.0,0,0,0.0,live TORCS run
+optuna_dummy,OPTUNA_DUMMY_006,optuna,corkscrew,3,3,1.0,155.644,159.56566666666666,2.8097535281388764,0.0,0,0,0.0,optuna dummy trial 6; dummy run; replace simulator with live TORCS later
+optuna_dummy,OPTUNA_DUMMY_008,optuna,corkscrew,3,3,1.0,156.589,158.61066666666667,2.2301964537282806,0.0,0,0,0.0,optuna dummy trial 8; dummy run; replace simulator with live TORCS later
+optuna_dummy,OPTUNA_DUMMY_004,optuna,corkscrew,3,3,1.0,157.147,159.29566666666665,1.5222860732756138,0.0,0,0,0.0,optuna dummy trial 4; dummy run; replace simulator with live TORCS later
+optuna_dummy,OPTUNA_DUMMY_001,optuna,corkscrew,3,3,1.0,158.103,160.793,2.0056447010043073,0.0,0,0,0.0,optuna dummy trial 1; dummy run; replace simulator with live TORCS later
+optuna_dummy,OPTUNA_DUMMY_007,optuna,corkscrew,3,3,1.0,158.2,160.147,2.34469713751407,0.0,0,0,0.0,optuna dummy trial 7; dummy run; replace simulator with live TORCS later
+optuna_dummy,OPTUNA_DUMMY_010,optuna,corkscrew,3,3,1.0,158.978,160.82233333333335,2.2413136525013373,0.0,0,0,0.0,optuna dummy trial 10; dummy run; replace simulator with live TORCS later
+optuna_dummy,OPTUNA_DUMMY_003,optuna,corkscrew,3,3,1.0,159.619,160.47,0.720134709620358,0.0,0,0,0.0,optuna dummy trial 3; dummy run; replace simulator with live TORCS later
+optuna_dummy,OPTUNA_DUMMY_005,optuna,corkscrew,3,3,1.0,160.358,162.56366666666668,1.5813083893479511,0.0,0,0,0.0,optuna dummy trial 5; dummy run; replace simulator with live TORCS later
+optuna_dummy,OPTUNA_DUMMY_002,optuna,corkscrew,3,3,1.0,162.858,163.88,1.0329824135321248,0.0,0,0,0.0,optuna dummy trial 2; dummy run; replace simulator with live TORCS later
+optuna_dummy,OPTUNA_DUMMY_009,optuna,corkscrew,3,3,1.0,163.349,165.167,1.405526947447114,0.0,0,0,0.0,optuna dummy trial 9; dummy run; replace simulator with live TORCS later
+optuna_dummy_replay,OPTUNA_BEST_REPLAY,optuna_replay,corkscrew,3,3,1.0,158.103,160.793,2.0056447010043073,0.0,0,0,0.0,Repeated replay of best Optuna configuration
+optuna_live,OPTUNA_LIVE_001,optuna,corkscrew,3,3,1.0,195.526,195.52599999999998,2.842170943040401e-14,0.0,0,0,0.0,optuna live trial 1; live TORCS run | live TORCS run
+partb_imported,PARTB_PPO_OPTIMIZED,PPO-based optimised policy,corkscrew,3,3,1.0,106.892,107.29833333333333,0.4530197444801808,0.9609999999999985,0,0,0.0,Imported Part B PPO evaluation from archive; model developed by Part B and evaluated within Part C framework. Algorithm label sourced from Part B summary controller='longitudinal_residual_ppo'.
+partb_imported,PARTB_IMPORTED_3LAPS_NORMAL,Part B imported residual policy,corkscrew,1,1,1.0,106.986,108.007,0.0,0.0,0,0,0.0,"Imported Part B visual evaluation; model developed by Part B and evaluated within Part C framework. PPO is not self-reported in the source summary for this row; algorithm type is recorded conservatively from telemetry columns rl_target_active, policy_inference, and residual."
+stress_dummy,EXP_001_STRESS_001,rule_based_stress,corkscrew,2,2,1.0,161.727,162.627,0.8999999999999915,1.799999999999983,0,0,0.0,dummy stress test; base_experiment_id=EXP_001; stress_type=target_speed_plus_5_percent; stress_parameter=target_speed; stress_value=84.0 | dummy stress test; base_experiment_id=EXP_001; stress_type=steer_gain_plus_0_05; stress_parameter=steer_gain; stress_value=1.05
+stress_dummy,EXP_001_STRESS_002,rule_based_stress,corkscrew,1,1,1.0,163.527,163.527,0.0,0.0,0,0,0.0,dummy stress test; base_experiment_id=EXP_001; stress_type=brake_threshold_minus_0_05; stress_parameter=brake_threshold; stress_value=0.55

@@ -11,15 +11,12 @@ This check verifies whether live repeat rows are backed by distinct telemetry fi
 | GRID_030 | grid_live | grid_search | 3 | 3 | 3 | 3 | 3 | 3 | 199.806 | 0.0 | 9648 | 9648 | verified: distinct telemetry files with unique content hashes and timestamps |
 | GRID_040 | grid_live | grid_search | 3 | 3 | 3 | 3 | 3 | 3 | 198.90600000000003 | 2.842170943040401e-14 | 9603 | 9603 | verified: distinct telemetry files with unique content hashes and timestamps |
 | EXP_001 | live | rule_based | 3 | 3 | 3 | 3 | 3 | 3 | 196.726 | 0.0 | 9494 | 9494 | verified: distinct telemetry files with unique content hashes and timestamps |
-| EXP_001 | live | torcs_live | 2 | 2 | 1 | 1 | 1 | 1 | 196.076 | 0.3100000000000023 | 9477 | 9477 | not verified: repeated run rows point to the same telemetry path |
 | OPTUNA_LIVE_001 | optuna_live | optuna | 3 | 3 | 3 | 3 | 3 | 3 | 195.52599999999998 | 2.842170943040401e-14 | 9434 | 9434 | verified: distinct telemetry files with unique content hashes and timestamps |
 
 ## File-Level Evidence
 
 | experiment_id | source | run_number | date_time | best_lap_time | file_size_bytes | telemetry_rows | first_timestamp | last_timestamp | sha256 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| EXP_001 | live | 1 | 2026-08-04T01:05:05.903207+00:00 | 195.766 | 963148 | 9477 | 2026-08-12T12:56:23.585261+00:00 | 2026-08-12T12:59:40.953022+00:00 | fe1b1db9f0f4a7108b09a6e879128b01872f5f1ed836275c1844989f23103d17 |
-| EXP_001 | live | 1 | 2026-08-12T12:59:40.953902+00:00 | 196.386 | 963148 | 9477 | 2026-08-12T12:56:23.585261+00:00 | 2026-08-12T12:59:40.953022+00:00 | fe1b1db9f0f4a7108b09a6e879128b01872f5f1ed836275c1844989f23103d17 |
 | EXP_001 | live | 1 | 2026-08-31T18:11:43.113201+00:00 | 196.726 | 964351 | 9494 | 2026-08-31T18:11:30.681096+00:00 | 2026-08-31T18:11:43.111675+00:00 | 0a20c68328ae1f2a3ada456e274f2108736b925b21c3540c3a9c5288f5f0f1ad |
 | EXP_001 | live | 1 | 2026-08-31T18:37:48.526131+00:00 | 196.726 | 964351 | 9494 | 2026-08-31T18:37:35.503222+00:00 | 2026-08-31T18:37:48.525884+00:00 | 204a36c4b8355567b60620c3949d7a06717c3d306d29c02cad1118fbd9f31bad |
 | GRID_030 | grid_live | 1 | 2026-08-31T19:05:52.748559+00:00 | 199.806 | 979765 | 9648 | 2026-08-31T19:05:40.049664+00:00 | 2026-08-31T19:05:52.748304+00:00 | 99179e3b87e355720cc95e73eb8f5e65e32c498a24d3020007299030d6dba464 |

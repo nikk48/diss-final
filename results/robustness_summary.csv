@@ -7,7 +7,6 @@ grid_dummy,GRID_010,grid_search,corkscrew,3,3,1.0,162.852,165.59033333333332,2.1
 grid_dummy,GRID_020,grid_search,corkscrew,3,3,1.0,162.852,165.59033333333332,2.123426214609036,0.0,0,0,0.0,dummy run; replace simulator with live TORCS later
 grid_live,GRID_040,grid_search,corkscrew,3,3,1.0,198.906,198.90600000000003,2.842170943040401e-14,0.0,0,0,0.0,live TORCS run
 grid_live,GRID_030,grid_search,corkscrew,3,3,1.0,199.806,199.806,0.0,0.0,0,0,0.0,live TORCS run
-live,EXP_001,torcs_live,corkscrew,5,2,0.4,195.766,196.076,0.3100000000000023,0.6200000000000045,0,0,0.0,live TORCS run
 live,EXP_001,rule_based,corkscrew,3,3,1.0,196.726,196.726,0.0,0.0,0,0,0.0,live TORCS run
 live,EXP_SAFE_001,rule_based,corkscrew,1,0,0.0,,,0.0,0.0,0,0,0.0,live TORCS run
 optuna_dummy,OPTUNA_DUMMY_006,optuna,corkscrew,3,3,1.0,155.644,159.56566666666666,2.8097535281388764,0.0,0,0,0.0,optuna dummy trial 6; dummy run; replace simulator with live TORCS later

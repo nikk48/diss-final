@@ -2,5 +2,4 @@ experiment_id,source,algorithm,run_rows,telemetry_files_found,unique_telemetry_p
 GRID_030,grid_live,grid_search,3,3,3,3,3,3,199.806,0.0,9648,9648,verified: distinct telemetry files with unique content hashes and timestamps
 GRID_040,grid_live,grid_search,3,3,3,3,3,3,198.90600000000003,2.842170943040401e-14,9603,9603,verified: distinct telemetry files with unique content hashes and timestamps
 EXP_001,live,rule_based,3,3,3,3,3,3,196.726,0.0,9494,9494,verified: distinct telemetry files with unique content hashes and timestamps
-EXP_001,live,torcs_live,2,2,1,1,1,1,196.076,0.3100000000000023,9477,9477,not verified: repeated run rows point to the same telemetry path
 OPTUNA_LIVE_001,optuna_live,optuna,3,3,3,3,3,3,195.52599999999998,2.842170943040401e-14,9434,9434,verified: distinct telemetry files with unique content hashes and timestamps

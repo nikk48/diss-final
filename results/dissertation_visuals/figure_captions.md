@@ -48,12 +48,36 @@ Figure 6. Computational-efficiency indicators for live Part C experiments, compa
 - SVG: `results/dissertation_visuals/fig_06_live_computational_efficiency.svg`
 - Data source(s): results/computational_efficiency_summary.csv
 
-## fig_07_hyperparameter_sensitivity
+## fig_07a_target_speed_sensitivity
 
-Figure 7. Exploratory sensitivity signals linking selected hyperparameters to mean lap time. The small live sample supports cautious discussion only and requires further testing before strong claims.
+Figure 7a. Target speed plotted against mean lap time for live Part C experiments. This is an exploratory sensitivity visual based on a small live sample and should not be interpreted as statistical proof.
 
-- PNG: `results/dissertation_visuals/fig_07_hyperparameter_sensitivity.png`
-- SVG: `results/dissertation_visuals/fig_07_hyperparameter_sensitivity.svg`
+- PNG: `results/dissertation_visuals/fig_07a_target_speed_sensitivity.png`
+- SVG: `results/dissertation_visuals/fig_07a_target_speed_sensitivity.svg`
+- Data source(s): results/hyperparameter_sensitivity.csv
+
+## fig_07b_gentle_speed_sensitivity
+
+Figure 7b. Gentle speed plotted against mean lap time for live Part C experiments. This is an exploratory sensitivity visual based on a small live sample and should not be interpreted as statistical proof.
+
+- PNG: `results/dissertation_visuals/fig_07b_gentle_speed_sensitivity.png`
+- SVG: `results/dissertation_visuals/fig_07b_gentle_speed_sensitivity.svg`
+- Data source(s): results/hyperparameter_sensitivity.csv
+
+## fig_07c_brake_threshold_sensitivity
+
+Figure 7c. Brake threshold plotted against mean lap time for live Part C experiments. This is an exploratory sensitivity visual based on a small live sample and should not be interpreted as statistical proof.
+
+- PNG: `results/dissertation_visuals/fig_07c_brake_threshold_sensitivity.png`
+- SVG: `results/dissertation_visuals/fig_07c_brake_threshold_sensitivity.svg`
+- Data source(s): results/hyperparameter_sensitivity.csv
+
+## fig_07d_steer_gain_sensitivity
+
+Figure 7d. Steer gain plotted against mean lap time for live Part C experiments. This is an exploratory sensitivity visual based on a small live sample and should not be interpreted as statistical proof.
+
+- PNG: `results/dissertation_visuals/fig_07d_steer_gain_sensitivity.png`
+- SVG: `results/dissertation_visuals/fig_07d_steer_gain_sensitivity.svg`
 - Data source(s): results/hyperparameter_sensitivity.csv
 
 ## fig_08_live_telemetry_speed_profiles

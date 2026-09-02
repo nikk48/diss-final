@@ -664,72 +664,84 @@ def sensitivity_visual(sensitivity: pd.DataFrame, records: list[FigureRecord]) -
     df = valid_rows(sensitivity)
     if df.empty:
         return
-    params = ["target_speed", "gentle_speed", "brake_threshold", "steer_gain"]
-    available = [p for p in params if p in df.columns]
-    if not available:
+    param_specs = [
+        ("fig_07a_target_speed_sensitivity", "Figure 7a", "target_speed", "Target speed"),
+        ("fig_07b_gentle_speed_sensitivity", "Figure 7b", "gentle_speed", "Gentle speed"),
+        ("fig_07c_brake_threshold_sensitivity", "Figure 7c", "brake_threshold", "Brake threshold"),
+        ("fig_07d_steer_gain_sensitivity", "Figure 7d", "steer_gain", "Steer gain"),
+    ]
+    available = [param for _, _, param, _ in param_specs if param in df.columns]
+    if not available or "mean_lap_time" not in df.columns:
         return
     df = numeric(df, available + ["mean_lap_time"])
-    df = df[df["source"].isin(["live", "grid_live", "optuna_live", "optuna_live_replay"])].copy()
+    live_sources = {"live", "grid_live", "optuna_live", "optuna_live_replay", "stress_live"}
+    df = df[df["source"].isin(live_sources)].copy()
     if len(df) < 2:
         return
 
-    figure_id = "fig_07_hyperparameter_sensitivity"
-    title = "Hyperparameter Sensitivity Signals"
-    fig, axes = plt.subplots(2, 2, figsize=(11, 7.5))
-    axes = axes.ravel()
-    for ax, param in zip(axes, available):
+    for figure_id, figure_label, param, param_label in param_specs:
+        if param not in df.columns:
+            continue
         plot_df = df[[param, "mean_lap_time", "source", "experiment_id"]].dropna()
         if plot_df.empty:
-            ax.axis("off")
             continue
+        title = f"{param_label} sensitivity versus mean lap time"
+        fig, ax = plt.subplots(figsize=(8.2, 5.6))
         ax.scatter(
             plot_df[param],
             plot_df["mean_lap_time"],
-            s=80,
+            s=95,
             c=[source_color(s) for s in plot_df["source"]],
             edgecolors="#111827",
-            linewidths=0.6,
+            linewidths=0.7,
         )
         for _, row in plot_df.iterrows():
             ax.annotate(
                 str(row["experiment_id"]),
                 (row[param], row["mean_lap_time"]),
-                xytext=(4, 4),
+                xytext=(6, 5),
                 textcoords="offset points",
-                fontsize=7.5,
+                fontsize=8,
                 color=NEUTRAL,
             )
-        ax.set_title(param.replace("_", " "), fontsize=11, fontweight="bold")
-        ax.set_xlabel(param.replace("_", " "))
-        ax.set_ylabel("Mean lap time (s)")
+        ax.set_title(title, fontsize=14, fontweight="bold", pad=12)
+        ax.set_xlabel(param_label)
+        ax.set_ylabel("Mean lap time (seconds, lower is better)")
         style_axis(ax)
         ax.grid(True, color=GRID, linewidth=0.8)
-    for ax in axes[len(available) :]:
-        ax.axis("off")
-    fig.suptitle(title, fontsize=15, fontweight="bold")
-    fig.tight_layout(rect=(0, 0.04, 1, 0.96))
-    fig.text(
-        0.02,
-        0.01,
-        "Exploratory visual only: small live sample, no statistical-significance claim.",
-        fontsize=8.5,
-        color="#6B7280",
-    )
 
-    caption = (
-        "Figure 7. Exploratory sensitivity signals linking selected hyperparameters "
-        "to mean lap time. The small live sample supports cautious discussion only "
-        "and requires further testing before strong claims."
-    )
-    save_figure(
-        fig,
-        figure_id,
-        title,
-        caption,
-        "results/hyperparameter_sensitivity.csv",
-        records,
-        "Cautious exploratory figure; no statistical-significance claim.",
-    )
+        x_values = plot_df[param]
+        y_values = plot_df["mean_lap_time"]
+        if x_values.nunique() == 1:
+            pad = max(abs(float(x_values.iloc[0])) * 0.04, 0.1)
+            ax.set_xlim(float(x_values.iloc[0]) - pad, float(x_values.iloc[0]) + pad)
+        if y_values.nunique() == 1:
+            pad = max(abs(float(y_values.iloc[0])) * 0.01, 0.5)
+            ax.set_ylim(float(y_values.iloc[0]) - pad, float(y_values.iloc[0]) + pad)
+        ax.text(
+            0,
+            -0.16,
+            "This is an exploratory sensitivity visual based on a small live sample and should not be interpreted as statistical proof.",
+            transform=ax.transAxes,
+            fontsize=8.5,
+            color="#6B7280",
+        )
+        fig.tight_layout()
+
+        caption = (
+            f"{figure_label}. {param_label} plotted against mean lap time for live Part C "
+            "experiments. This is an exploratory sensitivity visual based on a "
+            "small live sample and should not be interpreted as statistical proof."
+        )
+        save_figure(
+            fig,
+            figure_id,
+            title,
+            caption,
+            "results/hyperparameter_sensitivity.csv",
+            records,
+            "Live Part C rows only; exploratory visual with no statistical-significance claim.",
+        )
 
 
 def choose_telemetry_rows(run_log: pd.DataFrame) -> pd.DataFrame:

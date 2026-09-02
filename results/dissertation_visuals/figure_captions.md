@@ -135,3 +135,11 @@ The Part B PPO policy was developed outside Part C and is included only to demon
 - PNG: `results/dissertation_visuals/fig_12_imported_partb_comparator.png`
 - SVG: `results/dissertation_visuals/fig_12_imported_partb_comparator.svg`
 - Data source(s): results/summary_live.csv; results/summary_partb.csv
+
+## fig_13_talent_identification_evidence_matrix
+
+Figure 13. This matrix links concrete Part C repository artefacts to applied AI skills and explains why each artefact can support talent-identification evidence.
+
+- PNG: `results/dissertation_visuals/fig_13_talent_identification_evidence_matrix.png`
+- SVG: `results/dissertation_visuals/fig_13_talent_identification_evidence_matrix.svg`
+- Data source(s): Repository artefacts: configs, data/run_log.csv, telemetry logs, scripts, results, notes

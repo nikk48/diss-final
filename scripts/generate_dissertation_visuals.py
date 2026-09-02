@@ -19,7 +19,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
-from matplotlib.patches import FancyArrowPatch, FancyBboxPatch  # noqa: E402
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Rectangle  # noqa: E402
 import pandas as pd  # noqa: E402
 
 
@@ -1497,6 +1497,170 @@ def imported_partb_comparator(
     )
 
 
+def talent_identification_evidence_matrix(records: list[FigureRecord]) -> None:
+    rows = [
+        (
+            "Config files",
+            "Experimental design and reproducibility",
+            "Make parameters, tracks and run settings explicit so experiments can be repeated.",
+        ),
+        (
+            "run_log.csv",
+            "Traceability and systematic testing",
+            "Links each result to its configuration, source label, run number and metrics.",
+        ),
+        (
+            "Telemetry logs",
+            "Data analytics and behavioural analysis",
+            "Support investigation of speed, steering, throttle, braking and track position.",
+        ),
+        (
+            "Grid search",
+            "Structured optimisation",
+            "Shows planned exploration of controller settings rather than one-off trial and error.",
+        ),
+        (
+            "Optuna",
+            "Automated hyperparameter optimisation",
+            "Demonstrates use of optimisation tooling to search parameter combinations.",
+        ),
+        (
+            "Stress tests",
+            "Robustness thinking",
+            "Checks how sensitive the controller is to controlled parameter changes.",
+        ),
+        (
+            "Verification hashes",
+            "Reproducibility and quality assurance",
+            "Help confirm repeated runs are backed by distinct telemetry artefacts.",
+        ),
+        (
+            "Experiment diary",
+            "Reflective problem-solving",
+            "Records decisions, failures, changes and next steps for auditability.",
+        ),
+        (
+            "Charts",
+            "Communication and interpretation",
+            "Translate technical outputs into evidence that non-technical readers can inspect.",
+        ),
+        (
+            "Part B import bridge",
+            "Team integration and evaluation standardisation",
+            "Evaluates external policy artefacts with a shared schema without claiming them as Part C implementation.",
+        ),
+    ]
+
+    figure_id = "fig_13_talent_identification_evidence_matrix"
+    title = "Talent-identification evidence matrix"
+    fig, ax = plt.subplots(figsize=(13.5, 8.8))
+    ax.set_xlim(0, 12.7)
+    ax.set_ylim(0, 9.2)
+    ax.axis("off")
+    ax.set_title(title, fontsize=16, fontweight="bold", color="#111827", pad=18)
+
+    x0 = 0.35
+    table_top = 8.35
+    header_h = 0.58
+    row_h = 0.70
+    col_widths = [2.55, 3.75, 5.75]
+    col_x = [x0]
+    for width in col_widths[:-1]:
+        col_x.append(col_x[-1] + width)
+    headers = ["Evidence artefact", "Skill demonstrated", "Why it matters"]
+    wrap_widths = [22, 34, 58]
+
+    total_width = sum(col_widths)
+    total_height = header_h + row_h * len(rows)
+    ax.add_patch(
+        Rectangle(
+            (x0, table_top - total_height),
+            total_width,
+            total_height,
+            facecolor="white",
+            edgecolor="#D1D5DB",
+            linewidth=1.2,
+        )
+    )
+
+    for column, header in enumerate(headers):
+        ax.add_patch(
+            Rectangle(
+                (col_x[column], table_top - header_h),
+                col_widths[column],
+                header_h,
+                facecolor="#EFF6FF",
+                edgecolor="#D1D5DB",
+                linewidth=1.0,
+            )
+        )
+        ax.text(
+            col_x[column] + 0.13,
+            table_top - header_h / 2,
+            header,
+            ha="left",
+            va="center",
+            fontsize=9.5,
+            fontweight="bold",
+            color="#111827",
+        )
+
+    for row_index, row in enumerate(rows):
+        y_top = table_top - header_h - row_h * row_index
+        y_bottom = y_top - row_h
+        fill = "#FFFFFF" if row_index % 2 == 0 else "#F9FAFB"
+        if row_index == len(rows) - 1:
+            fill = "#FDF2F8"
+        for column, value in enumerate(row):
+            ax.add_patch(
+                Rectangle(
+                    (col_x[column], y_bottom),
+                    col_widths[column],
+                    row_h,
+                    facecolor=fill,
+                    edgecolor="#E5E7EB",
+                    linewidth=0.8,
+                )
+            )
+            ax.text(
+                col_x[column] + 0.13,
+                y_bottom + row_h / 2,
+                textwrap.fill(value, width=wrap_widths[column]),
+                ha="left",
+                va="center",
+                fontsize=8.7,
+                color="#111827" if column == 0 else NEUTRAL,
+                fontweight="bold" if column == 0 else "normal",
+                linespacing=1.15,
+            )
+
+    ax.text(
+        x0,
+        0.35,
+        "The matrix frames Part C as evidence of applied AI engineering skills: design, execution, validation, optimisation and communication.",
+        ha="left",
+        va="center",
+        fontsize=8.7,
+        color="#6B7280",
+    )
+    fig.tight_layout()
+
+    caption = (
+        "Figure 13. This matrix links concrete Part C repository artefacts to "
+        "applied AI skills and explains why each artefact can support "
+        "talent-identification evidence."
+    )
+    save_figure(
+        fig,
+        figure_id,
+        title,
+        caption,
+        "Repository artefacts: configs, data/run_log.csv, telemetry logs, scripts, results, notes",
+        records,
+        "Part B import bridge is included only as evidence of external-artefact evaluation and team integration.",
+    )
+
+
 def optuna_trial_history(optuna_trials: pd.DataFrame, records: list[FigureRecord]) -> None:
     if optuna_trials.empty or "trial" not in optuna_trials.columns:
         return
@@ -1663,6 +1827,7 @@ def main() -> None:
     racing_line_or_track_position(run_log, records)
     dummy_to_live_transfer_gap(summary_dummy, summary_live, records)
     imported_partb_comparator(summary_live, summary_partb, records)
+    talent_identification_evidence_matrix(records)
 
     write_captions(records)
     write_manifest(records)

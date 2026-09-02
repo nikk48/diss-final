@@ -1205,6 +1205,186 @@ def racing_line_or_track_position(run_log: pd.DataFrame, records: list[FigureRec
     )
 
 
+def dummy_to_live_transfer_gap(
+    summary_dummy: pd.DataFrame,
+    summary_live: pd.DataFrame,
+    records: list[FigureRecord],
+) -> None:
+    dummy = valid_rows(summary_dummy)
+    live = valid_rows(summary_live)
+    if dummy.empty or live.empty:
+        return
+
+    dummy = numeric(
+        dummy,
+        ["rank_by_balanced_score", "rank_by_mean_lap", "mean_lap_time", "best_lap_time"],
+    )
+    live = numeric(live, ["mean_lap_time", "best_lap_time", "completion_rate"])
+
+    configs = ["EXP_001", "GRID_030", "GRID_040"]
+    dummy_rows = []
+    live_rows = []
+    for experiment_id in configs:
+        dummy_match = dummy[dummy["experiment_id"].astype(str) == experiment_id].copy()
+        live_match = live[live["experiment_id"].astype(str) == experiment_id].copy()
+        if experiment_id == "EXP_001":
+            dummy_match = dummy_match[dummy_match["source"].astype(str).str.contains("dummy")]
+            if "method" in live_match.columns:
+                live_match = live_match[
+                    (live_match["source"].astype(str) == "live")
+                    & (live_match["method"].astype(str) == "rule_based")
+                ]
+            else:
+                live_match = live_match[live_match["source"].astype(str) == "live"]
+        else:
+            dummy_match = dummy_match[dummy_match["source"].astype(str).str.contains("dummy")]
+            live_match = live_match[live_match["source"].astype(str) == "grid_live"]
+        if dummy_match.empty or live_match.empty:
+            continue
+        dummy_rows.append(dummy_match.iloc[0])
+        live_rows.append(live_match.iloc[0])
+
+    if len(dummy_rows) < 2 or len(live_rows) < 2:
+        return
+
+    dummy_df = pd.DataFrame(dummy_rows)
+    live_df = pd.DataFrame(live_rows)
+    label_map = {
+        "EXP_001": "EXP_001\nbaseline",
+        "GRID_030": "GRID_030\ngrid search",
+        "GRID_040": "GRID_040\ngrid search",
+    }
+    dummy_df["plot_label"] = dummy_df["experiment_id"].map(label_map)
+    live_df["plot_label"] = live_df["experiment_id"].map(label_map)
+
+    rank_column = "rank_by_balanced_score"
+    if rank_column not in dummy_df.columns or dummy_df[rank_column].isna().all():
+        rank_column = "rank_by_mean_lap"
+    if rank_column not in dummy_df.columns or dummy_df[rank_column].isna().all():
+        rank_column = "mean_lap_time"
+        dummy_axis = "Dummy mean lap time (seconds, lower is better)"
+        dummy_title = "Dummy validation result"
+        dummy_note = "Left panel uses dummy mean lap time because rank columns were unavailable."
+    else:
+        dummy_axis = "Dummy validation rank (lower is better)"
+        dummy_title = "Dummy validation rank"
+        dummy_note = f"Left panel uses {rank_column}; lower rank is better."
+
+    if rank_column.startswith("rank"):
+        plot_order = dummy_df.sort_values(rank_column)["experiment_id"].astype(str).tolist()
+    else:
+        plot_order = dummy_df.sort_values("mean_lap_time")["experiment_id"].astype(str).tolist()
+    dummy_df = (
+        dummy_df.set_index("experiment_id")
+        .loc[plot_order]
+        .reset_index()
+    )
+    live_df = (
+        live_df.set_index("experiment_id")
+        .loc[plot_order]
+        .reset_index()
+    )
+    y = list(range(len(dummy_df)))
+    colors = {
+        "EXP_001": "#2563EB",
+        "GRID_030": "#0F766E",
+        "GRID_040": "#14B8A6",
+    }
+    bar_colors = [colors.get(str(experiment), NEUTRAL) for experiment in dummy_df["experiment_id"]]
+
+    figure_id = "fig_11_dummy_to_live_transfer_gap"
+    title = "Dummy-to-live transfer gap"
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5.8))
+
+    left = axes[0]
+    dummy_values = dummy_df[rank_column].fillna(0)
+    left.barh(y, dummy_values, color=bar_colors, edgecolor="#1F2937", linewidth=0.6)
+    left.set_yticks(y, dummy_df["plot_label"])
+    left.invert_yaxis()
+    left.set_xlabel(dummy_axis)
+    left.set_title(dummy_title, fontsize=11.5, fontweight="bold", color="#111827")
+    style_axis(left)
+    left.grid(axis="x", color=GRID, linewidth=0.8)
+    left.grid(axis="y", visible=False)
+    left_limit = max(float(dummy_values.max()) * 1.25, 1.0)
+    left.set_xlim(0, left_limit)
+    for ypos, value in zip(y, dummy_values):
+        value_label = f"{value:.0f}" if rank_column.startswith("rank") else f"{value:.3f}s"
+        left.text(
+            float(value) + left_limit * 0.025,
+            ypos,
+            value_label,
+            va="center",
+            ha="left",
+            fontsize=8.5,
+            color=NEUTRAL,
+        )
+
+    right = axes[1]
+    live_values = live_df["mean_lap_time"].fillna(0)
+    right.barh(y, live_values, color=bar_colors, edgecolor="#1F2937", linewidth=0.6)
+    right.set_yticks(y, live_df["plot_label"])
+    right.tick_params(axis="y", labelleft=False)
+    right.invert_yaxis()
+    right.set_xlabel("Live TORCS mean lap time (seconds, lower is better)")
+    right.set_title("Live TORCS performance", fontsize=11.5, fontweight="bold", color="#111827")
+    style_axis(right)
+    right.grid(axis="x", color=GRID, linewidth=0.8)
+    right.grid(axis="y", visible=False)
+    right_limit = max(float(live_values.max()) * 1.12, 1.0)
+    right.set_xlim(0, right_limit)
+    baseline_live = live_df[live_df["experiment_id"].astype(str) == "EXP_001"]
+    if not baseline_live.empty:
+        baseline_mean = float(baseline_live.iloc[0]["mean_lap_time"])
+        right.axvline(baseline_mean, color="#111827", linewidth=1.0, linestyle="--", alpha=0.75)
+        right.text(
+            baseline_mean,
+            -0.42,
+            "baseline",
+            ha="center",
+            va="bottom",
+            fontsize=8,
+            color="#111827",
+        )
+    for ypos, value in zip(y, live_values):
+        right.text(
+            float(value) + right_limit * 0.015,
+            ypos,
+            f"{value:.3f}s",
+            va="center",
+            ha="left",
+            fontsize=8.5,
+            color=NEUTRAL,
+        )
+
+    fig.suptitle(title, fontsize=15, fontweight="bold", color="#111827", y=0.98)
+    fig.text(
+        0.5,
+        0.015,
+        "Dummy validation and live TORCS evidence are intentionally separated; invalid zero-lap rows are excluded.",
+        ha="center",
+        fontsize=8.5,
+        color="#6B7280",
+    )
+    fig.tight_layout(rect=(0, 0.05, 1, 0.94))
+
+    caption = (
+        "Configurations favoured by dummy validation did not transfer to better "
+        "live TORCS performance. The dummy panel is pipeline-validation evidence, "
+        "while the live panel shows Part C simulator evidence for the same named "
+        "configurations."
+    )
+    save_figure(
+        fig,
+        figure_id,
+        title,
+        caption,
+        "results/summary_dummy.csv; results/summary_live.csv",
+        records,
+        f"{dummy_note} Right panel uses verified live Part C mean lap time for EXP_001, GRID_030 and GRID_040.",
+    )
+
+
 def optuna_trial_history(optuna_trials: pd.DataFrame, records: list[FigureRecord]) -> None:
     if optuna_trials.empty or "trial" not in optuna_trials.columns:
         return
@@ -1352,6 +1532,7 @@ def main() -> None:
 
     run_log = read_csv_if_exists(DATA_DIR / "run_log.csv")
     summary_live = read_csv_if_exists(RESULTS_DIR / "summary_live.csv")
+    summary_dummy = read_csv_if_exists(RESULTS_DIR / "summary_dummy.csv")
     robustness = read_csv_if_exists(RESULTS_DIR / "robustness_summary.csv")
     efficiency = read_csv_if_exists(RESULTS_DIR / "computational_efficiency_summary.csv")
     sensitivity = read_csv_if_exists(RESULTS_DIR / "hyperparameter_sensitivity.csv")
@@ -1367,6 +1548,7 @@ def main() -> None:
     optuna_trial_history(optuna_trials, records)
     baseline_vs_optuna_telemetry(run_log, records)
     racing_line_or_track_position(run_log, records)
+    dummy_to_live_transfer_gap(summary_dummy, summary_live, records)
 
     write_captions(records)
     write_manifest(records)

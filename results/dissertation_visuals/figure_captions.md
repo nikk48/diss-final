@@ -119,3 +119,11 @@ Figure 10. Telemetry does not include x/y position coordinates, so this is a tra
 - PNG: `results/dissertation_visuals/fig_10_racing_line_or_track_position_map.png`
 - SVG: `results/dissertation_visuals/fig_10_racing_line_or_track_position_map.svg`
 - Data source(s): data/telemetry_logs/EXP_001_live_run_1_20260831_181130_629284.csv; data/telemetry_logs/OPTUNA_LIVE_001_optuna_live_run_1_20260831_190722_745120.csv
+
+## fig_11_dummy_to_live_transfer_gap
+
+Configurations favoured by dummy validation did not transfer to better live TORCS performance. The dummy panel is pipeline-validation evidence, while the live panel shows Part C simulator evidence for the same named configurations.
+
+- PNG: `results/dissertation_visuals/fig_11_dummy_to_live_transfer_gap.png`
+- SVG: `results/dissertation_visuals/fig_11_dummy_to_live_transfer_gap.svg`
+- Data source(s): results/summary_dummy.csv; results/summary_live.csv

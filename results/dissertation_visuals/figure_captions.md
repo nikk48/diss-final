@@ -24,13 +24,13 @@ Lower lap time is better. This figure compares only Part C live TORCS configurat
 - SVG: `results/dissertation_visuals/fig_03_live_lap_time_comparison.svg`
 - Data source(s): results/summary_live.csv
 
-## fig_04_cross_source_comparison
+## fig_04_improvement_vs_baseline
 
-Figure 4. Cross-source comparison with source labels retained. Part B PPO appears only as imported comparator evidence, while Part C claims rely on the live, grid, Optuna, dummy-validation and stress-test streams.
+Figure 4. Improvement is calculated as verified baseline mean lap time minus experiment mean lap time. Positive values indicate faster live TORCS performance than the EXP_001 rule-based baseline.
 
-- PNG: `results/dissertation_visuals/fig_04_cross_source_comparison.png`
-- SVG: `results/dissertation_visuals/fig_04_cross_source_comparison.svg`
-- Data source(s): results/comparison_summary.csv
+- PNG: `results/dissertation_visuals/fig_04_improvement_vs_baseline.png`
+- SVG: `results/dissertation_visuals/fig_04_improvement_vs_baseline.svg`
+- Data source(s): results/summary_live.csv
 
 ## fig_05_live_robustness
 

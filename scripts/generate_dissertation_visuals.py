@@ -363,60 +363,90 @@ def live_performance(summary_live: pd.DataFrame, records: list[FigureRecord]) ->
     )
 
 
-def comparison_by_source(comparison: pd.DataFrame, records: list[FigureRecord]) -> None:
-    df = valid_rows(comparison)
+def improvement_vs_baseline(summary_live: pd.DataFrame, records: list[FigureRecord]) -> None:
+    df = valid_rows(summary_live)
     if df.empty:
         return
-    df = numeric(df, ["mean_lap_time", "best_lap_time"])
-    focus_sources = ["dummy", "grid_live", "live", "optuna_live", "stress_dummy", "partb_imported"]
-    df = df[df["source"].isin(focus_sources)].copy()
-    if df.empty:
-        return
-    df = df.drop_duplicates(subset=["experiment_id", "source", "method", "mean_lap_time"])
-    df["label"] = df.apply(method_label, axis=1)
-    df = df.sort_values(["source", "mean_lap_time"])
+    df = numeric(df, ["mean_lap_time", "best_lap_time", "completion_rate"])
+    if "method" in df.columns:
+        df["method_text"] = df["method"].astype(str)
+    elif "algorithm" in df.columns:
+        df["method_text"] = df["algorithm"].astype(str)
+    else:
+        df["method_text"] = ""
 
-    figure_id = "fig_04_cross_source_comparison"
-    title = "Cross-Source Comparison With Evidence Labels"
-    fig, ax = plt.subplots(figsize=(11, 7.2))
-    y = range(len(df))
-    ax.barh(
-        y,
-        df["mean_lap_time"],
-        color=[source_color(s) for s in df["source"]],
-        edgecolor="#1F2937",
-        linewidth=0.5,
+    baseline = df[
+        (df["experiment_id"].astype(str) == "EXP_001")
+        & (df["source"].astype(str) == "live")
+        & (df["method_text"] == "rule_based")
+    ].copy()
+    if baseline.empty:
+        return
+    baseline_mean = float(baseline.iloc[0]["mean_lap_time"])
+
+    requested_ids = {"GRID_030", "GRID_040", "OPTUNA_LIVE_001"}
+    include = (
+        df["experiment_id"].astype(str).isin(requested_ids)
+        | (df["source"].astype(str) == "optuna_live_replay")
     )
-    ax.set_yticks(list(y), df["label"])
+    df = df[include].copy()
+    if df.empty:
+        return
+
+    df["improvement_seconds"] = baseline_mean - df["mean_lap_time"]
+    df["label"] = df.apply(method_label, axis=1)
+    df = df.sort_values("improvement_seconds", ascending=False)
+
+    figure_id = "fig_04_improvement_vs_baseline"
+    title = "Live performance improvement versus verified baseline"
+    fig, ax = plt.subplots(figsize=(10.5, 5.4))
+    y = list(range(len(df)))
+    colors = ["#B45309" if value >= 0 else "#9CA3AF" for value in df["improvement_seconds"]]
+    bars = ax.barh(y, df["improvement_seconds"], color=colors, edgecolor="#1F2937", linewidth=0.6)
+    ax.axvline(0, color="#111827", linewidth=1.1)
+    ax.set_yticks(y, df["label"])
     ax.invert_yaxis()
-    ax.set_xlabel("Mean lap time (seconds, lower is better)")
-    ax.set_ylabel("Evidence group")
+    ax.set_xlabel("Improvement versus baseline (seconds)")
+    ax.set_ylabel("Live Part C configuration")
     ax.set_title(title, fontsize=15, fontweight="bold", pad=14)
     style_axis(ax)
-    for ypos, value in zip(y, df["mean_lap_time"]):
-        ax.text(value + 1.0, ypos, f"{value:.1f}s", va="center", fontsize=8.5, color=NEUTRAL)
+    x_values = df["improvement_seconds"].fillna(0)
+    padding = max(0.6, (x_values.max() - x_values.min()) * 0.12)
+    ax.set_xlim(x_values.min() - padding, x_values.max() + padding)
+    for bar, value in zip(bars, df["improvement_seconds"]):
+        ha = "left" if value >= 0 else "right"
+        offset = 0.08 if value >= 0 else -0.08
+        ax.text(
+            value + offset,
+            bar.get_y() + bar.get_height() / 2,
+            f"{value:+.3f}s",
+            va="center",
+            ha=ha,
+            fontsize=8.5,
+            color=NEUTRAL,
+        )
     ax.text(
         0,
-        -0.1,
-        "This is a labelled comparison, not a claim that dummy, live, stress and imported Part B evidence are equivalent.",
+        -0.13,
+        "Positive values are faster than the verified EXP_001 live rule-based baseline; negative values are slower.",
         transform=ax.transAxes,
         fontsize=8.5,
         color="#6B7280",
     )
 
     caption = (
-        "Figure 4. Cross-source comparison with source labels retained. Part B PPO "
-        "appears only as imported comparator evidence, while Part C claims rely on "
-        "the live, grid, Optuna, dummy-validation and stress-test streams."
+        "Figure 4. Improvement is calculated as verified baseline mean lap time "
+        "minus experiment mean lap time. Positive values indicate faster live "
+        "TORCS performance than the EXP_001 rule-based baseline."
     )
     save_figure(
         fig,
         figure_id,
         title,
         caption,
-        "results/comparison_summary.csv",
+        "results/summary_live.csv",
         records,
-        "Sources are labelled explicitly to avoid mixing evidence types.",
+        "Live Part C configurations only; excludes dummy validation and imported Part B comparator evidence.",
     )
 
 
@@ -786,7 +816,6 @@ def main() -> None:
 
     run_log = read_csv_if_exists(DATA_DIR / "run_log.csv")
     summary_live = read_csv_if_exists(RESULTS_DIR / "summary_live.csv")
-    comparison = read_csv_if_exists(RESULTS_DIR / "comparison_summary.csv")
     robustness = read_csv_if_exists(RESULTS_DIR / "robustness_summary.csv")
     efficiency = read_csv_if_exists(RESULTS_DIR / "computational_efficiency_summary.csv")
     sensitivity = read_csv_if_exists(RESULTS_DIR / "hyperparameter_sensitivity.csv")
@@ -794,7 +823,7 @@ def main() -> None:
     framework_diagram(records)
     evidence_source_map(records)
     live_performance(summary_live, records)
-    comparison_by_source(comparison, records)
+    improvement_vs_baseline(summary_live, records)
     robustness_visual(robustness, records)
     efficiency_visual(efficiency, records)
     sensitivity_visual(sensitivity, records)

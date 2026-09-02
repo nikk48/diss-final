@@ -462,44 +462,72 @@ def robustness_visual(robustness: pd.DataFrame, records: list[FigureRecord]) -> 
     df = df[df["source"].isin(live_sources)].copy()
     if df.empty:
         return
-    df = numeric(df, ["std_lap_time", "completion_rate", "valid_runs"]).sort_values(
-        ["completion_rate", "std_lap_time"], ascending=[False, True]
+    crash_column = "crash_count" if "crash_count" in df.columns else "total_crashes"
+    off_track_column = (
+        "off_track_count" if "off_track_count" in df.columns else "total_off_track_events"
     )
+    df = numeric(
+        df,
+        ["completion_rate", "valid_runs", crash_column, off_track_column],
+    ).sort_values(["source", "experiment_id"])
     labels = [method_label(row) for _, row in df.iterrows()]
 
-    figure_id = "fig_05_live_robustness"
-    title = "Live Robustness Evidence"
-    fig, ax1 = plt.subplots(figsize=(10.5, 5.8))
-    x = list(range(len(df)))
-    ax1.bar(
-        x,
-        df["std_lap_time"].fillna(0),
-        color=[source_color(s) for s in df["source"]],
-        edgecolor="#1F2937",
-        linewidth=0.5,
+    figure_id = "fig_05_robustness_reproducibility_summary"
+    title = "Robustness evidence from repeated live TORCS runs"
+    metrics = [
+        ("valid_runs", "Valid runs", "runs", None),
+        ("completion_rate_percent", "Completion rate", "%", 100),
+        (crash_column, "Crash count", "count", None),
+        (off_track_column, "Off-track count", "count", None),
+    ]
+    df["completion_rate_percent"] = df["completion_rate"].fillna(0) * 100
+
+    fig, axes = plt.subplots(2, 2, figsize=(12, 7.6), sharey=True)
+    axes = axes.flatten()
+    y = list(range(len(df)))
+    colors = [source_color(source) for source in df["source"]]
+
+    for index, (column, panel_title, unit, fixed_max) in enumerate(metrics):
+        ax = axes[index]
+        values = df[column].fillna(0)
+        ax.barh(y, values, color=colors, edgecolor="#1F2937", linewidth=0.5)
+        ax.set_title(panel_title, fontsize=11.5, fontweight="bold", color="#111827")
+        ax.set_yticks(y, labels)
+        ax.invert_yaxis()
+        style_axis(ax)
+        ax.grid(axis="x", color=GRID, linewidth=0.8)
+        ax.grid(axis="y", visible=False)
+        limit = fixed_max if fixed_max is not None else max(float(values.max()) * 1.25, 1.0)
+        ax.set_xlim(0, limit)
+        ax.set_xlabel(unit)
+        if index % 2 == 1:
+            ax.tick_params(axis="y", labelleft=False)
+        for ypos, value in zip(y, values):
+            label = f"{value:.0f}%" if unit == "%" else f"{value:.0f}"
+            offset = limit * 0.025
+            ax.text(
+                min(float(value) + offset, limit * 0.98),
+                ypos,
+                label,
+                va="center",
+                ha="left",
+                fontsize=8.5,
+                color=NEUTRAL,
+            )
+
+    fig.suptitle(title, fontsize=15, fontweight="bold", color="#111827", y=0.98)
+    fig.text(
+        0.5,
+        0.015,
+        "Completion rate is shown as a percentage; other panels are run/event counts. Invalid zero-lap rows are excluded.",
+        ha="center",
+        fontsize=8.5,
+        color="#6B7280",
     )
-    ax1.set_ylabel("Lap-time standard deviation (seconds)")
-    ax1.set_xticks(x, labels, rotation=0)
-    ax1.set_title(title, fontsize=15, fontweight="bold", pad=14)
-    style_axis(ax1)
-    ax1.grid(axis="y", color=GRID, linewidth=0.8)
-    ax1.grid(axis="x", visible=False)
-
-    ax2 = ax1.twinx()
-    ax2.plot(x, df["completion_rate"], color="#111827", marker="o", linewidth=1.5, label="Completion rate")
-    ax2.set_ylim(0, 1.05)
-    ax2.set_ylabel("Completion rate")
-    ax2.tick_params(colors=NEUTRAL, labelsize=9)
-    ax2.spines["top"].set_visible(False)
-    ax2.spines["right"].set_color("#D1D5DB")
-    for xpos, rate in zip(x, df["completion_rate"]):
-        ax2.text(xpos, min(rate + 0.035, 1.04), f"{rate:.0%}", ha="center", fontsize=8)
-
-    fig.tight_layout()
+    fig.tight_layout(rect=(0, 0.04, 1, 0.94))
     caption = (
-        "Figure 5. Robustness view for live Part C evidence: lower lap-time spread "
-        "and high completion rate indicate more repeatable behaviour in the limited "
-        "live sample."
+        "Repeated runs under identical conditions support reproducibility. Broader "
+        "robustness requires stress tests or varied conditions."
     )
     save_figure(
         fig,
@@ -508,7 +536,7 @@ def robustness_visual(robustness: pd.DataFrame, records: list[FigureRecord]) -> 
         caption,
         "results/robustness_summary.csv",
         records,
-        "Uses live-source rows with positive lap-time evidence.",
+        "Uses live Part C rows with positive lap-time evidence; completion rate shown as percentage.",
     )
 
 

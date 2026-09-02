@@ -32,12 +32,12 @@ Figure 4. Improvement is calculated as verified baseline mean lap time minus exp
 - SVG: `results/dissertation_visuals/fig_04_improvement_vs_baseline.svg`
 - Data source(s): results/summary_live.csv
 
-## fig_05_live_robustness
+## fig_05_robustness_reproducibility_summary
 
-Figure 5. Robustness view for live Part C evidence: lower lap-time spread and high completion rate indicate more repeatable behaviour in the limited live sample.
+Repeated runs under identical conditions support reproducibility. Broader robustness requires stress tests or varied conditions.
 
-- PNG: `results/dissertation_visuals/fig_05_live_robustness.png`
-- SVG: `results/dissertation_visuals/fig_05_live_robustness.svg`
+- PNG: `results/dissertation_visuals/fig_05_robustness_reproducibility_summary.png`
+- SVG: `results/dissertation_visuals/fig_05_robustness_reproducibility_summary.svg`
 - Data source(s): results/robustness_summary.csv
 
 ## fig_06_live_computational_efficiency

@@ -42,7 +42,7 @@ Repeated runs under identical conditions support reproducibility. Broader robust
 
 ## fig_06_live_computational_efficiency
 
-Figure 6. Computational-efficiency evidence for live Part C methods, showing runtime and decision latency without mixing dummy or imported Part B rows.
+Figure 6. Computational-efficiency indicators for live Part C experiments, comparing the verified rule-based baseline, grid-search configurations, and Optuna live configuration without mixing dummy or imported Part B runtime evidence.
 
 - PNG: `results/dissertation_visuals/fig_06_live_computational_efficiency.png`
 - SVG: `results/dissertation_visuals/fig_06_live_computational_efficiency.svg`

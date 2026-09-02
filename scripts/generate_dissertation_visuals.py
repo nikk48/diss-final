@@ -550,11 +550,30 @@ def efficiency_visual(efficiency: pd.DataFrame, records: list[FigureRecord]) -> 
     df = df[df["source"].isin(live_sources)].copy()
     if df.empty:
         return
+    if "algorithm" in df.columns:
+        df["method_text"] = df["algorithm"].astype(str)
+    else:
+        df["method_text"] = ""
+    requested_ids = {"GRID_030", "GRID_040", "OPTUNA_LIVE_001"}
+    include = (
+        (
+            (df["experiment_id"].astype(str) == "EXP_001")
+            & (df["source"].astype(str) == "live")
+            & (df["method_text"] == "rule_based")
+        )
+        | df["experiment_id"].astype(str).isin(requested_ids)
+        | (df["source"].astype(str) == "optuna_live_replay")
+    )
+    df = df[include].copy()
+    if df.empty:
+        return
     df = numeric(
         df,
         [
             "mean_runtime_per_run_seconds",
             "mean_decision_latency_ms",
+            "mean_cpu_usage",
+            "mean_memory_usage",
             "best_lap_time",
             "valid_run_percentage",
         ],
@@ -562,35 +581,73 @@ def efficiency_visual(efficiency: pd.DataFrame, records: list[FigureRecord]) -> 
     df = df.sort_values("mean_runtime_per_run_seconds")
 
     figure_id = "fig_06_live_computational_efficiency"
-    title = "Live Computational Efficiency"
-    fig, ax = plt.subplots(figsize=(9.5, 6.2))
-    ax.scatter(
-        df["mean_runtime_per_run_seconds"],
-        df["mean_decision_latency_ms"],
-        s=110,
-        c=[source_color(s) for s in df["source"]],
-        edgecolors="#111827",
-        linewidths=0.8,
+    title = "Computational-efficiency indicators for live Part C experiments"
+    metrics = [
+        ("mean_runtime_per_run_seconds", "Runtime per run", "seconds"),
+        ("mean_decision_latency_ms", "Decision latency", "milliseconds"),
+        ("mean_cpu_usage", "CPU usage", "%"),
+        ("mean_memory_usage", "Memory usage", "%"),
+    ]
+    metrics = [(column, panel_title, unit) for column, panel_title, unit in metrics if column in df.columns]
+    if not metrics:
+        return
+
+    labels = [method_label(row) for _, row in df.iterrows()]
+    colors = [source_color(source) for source in df["source"]]
+    fig, axes = plt.subplots(2, 2, figsize=(12, 7.4), sharey=True)
+    axes = axes.flatten()
+    y = list(range(len(df)))
+
+    for index, ax in enumerate(axes):
+        if index >= len(metrics):
+            ax.axis("off")
+            continue
+        column, panel_title, unit = metrics[index]
+        values = df[column].fillna(0)
+        ax.barh(y, values, color=colors, edgecolor="#1F2937", linewidth=0.5)
+        ax.set_title(panel_title, fontsize=11.5, fontweight="bold", color="#111827")
+        ax.set_yticks(y, labels)
+        ax.invert_yaxis()
+        style_axis(ax)
+        ax.grid(axis="x", color=GRID, linewidth=0.8)
+        ax.grid(axis="y", visible=False)
+        limit = max(float(values.max()) * 1.22, 0.01)
+        ax.set_xlim(0, limit)
+        ax.set_xlabel(unit)
+        if index % 2 == 1:
+            ax.tick_params(axis="y", labelleft=False)
+        for ypos, value in zip(y, values):
+            if unit == "seconds":
+                label = f"{value:.3f}s"
+            elif unit == "milliseconds":
+                label = f"{value:.4f} ms"
+            else:
+                label = f"{value:.1f}%"
+            ax.text(
+                min(float(value) + limit * 0.025, limit * 0.98),
+                ypos,
+                label,
+                va="center",
+                ha="left",
+                fontsize=8.5,
+                color=NEUTRAL,
+            )
+
+    fig.suptitle(title, fontsize=15, fontweight="bold", color="#111827", y=0.98)
+    fig.text(
+        0.5,
+        0.015,
+        "Live Part C rows only. Dummy and imported Part B runtime evidence are excluded from this figure.",
+        ha="center",
+        fontsize=8.5,
+        color="#6B7280",
     )
-    for _, row in df.iterrows():
-        ax.annotate(
-            str(row["experiment_id"]),
-            (row["mean_runtime_per_run_seconds"], row["mean_decision_latency_ms"]),
-            xytext=(6, 5),
-            textcoords="offset points",
-            fontsize=8.5,
-            color=NEUTRAL,
-        )
-    ax.set_xlabel("Mean runtime per run (seconds)")
-    ax.set_ylabel("Mean decision latency (milliseconds)")
-    ax.set_title(title, fontsize=15, fontweight="bold", pad=14)
-    style_axis(ax)
-    ax.grid(True, color=GRID, linewidth=0.8)
+    fig.tight_layout(rect=(0, 0.04, 1, 0.94))
 
     caption = (
-        "Figure 6. Computational-efficiency evidence for live Part C methods, "
-        "showing runtime and decision latency without mixing dummy or imported "
-        "Part B rows."
+        "Figure 6. Computational-efficiency indicators for live Part C experiments, "
+        "comparing the verified rule-based baseline, grid-search configurations, "
+        "and Optuna live configuration without mixing dummy or imported Part B runtime evidence."
     )
     save_figure(
         fig,

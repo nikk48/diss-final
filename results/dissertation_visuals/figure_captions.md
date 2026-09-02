@@ -87,3 +87,27 @@ Optuna was used as an automated hyperparameter optimisation extension. Lower obj
 - PNG: `results/dissertation_visuals/fig_08_optuna_trial_history.png`
 - SVG: `results/dissertation_visuals/fig_08_optuna_trial_history.svg`
 - Data source(s): results/optuna_trials.csv
+
+## fig_09a_speed_profile_baseline_vs_optuna
+
+These plots show how the driving behaviour differs over the lap, not just the final lap time.
+
+- PNG: `results/dissertation_visuals/fig_09a_speed_profile_baseline_vs_optuna.png`
+- SVG: `results/dissertation_visuals/fig_09a_speed_profile_baseline_vs_optuna.svg`
+- Data source(s): data/telemetry_logs/EXP_001_live_run_1_20260831_181130_629284.csv; data/telemetry_logs/OPTUNA_LIVE_001_optuna_live_run_1_20260831_190722_745120.csv
+
+## fig_09b_steering_profile_baseline_vs_optuna
+
+These plots show how the driving behaviour differs over the lap, not just the final lap time.
+
+- PNG: `results/dissertation_visuals/fig_09b_steering_profile_baseline_vs_optuna.png`
+- SVG: `results/dissertation_visuals/fig_09b_steering_profile_baseline_vs_optuna.svg`
+- Data source(s): data/telemetry_logs/EXP_001_live_run_1_20260831_181130_629284.csv; data/telemetry_logs/OPTUNA_LIVE_001_optuna_live_run_1_20260831_190722_745120.csv
+
+## fig_09c_throttle_brake_profile_baseline_vs_optuna
+
+These plots show how the driving behaviour differs over the lap, not just the final lap time.
+
+- PNG: `results/dissertation_visuals/fig_09c_throttle_brake_profile_baseline_vs_optuna.png`
+- SVG: `results/dissertation_visuals/fig_09c_throttle_brake_profile_baseline_vs_optuna.svg`
+- Data source(s): data/telemetry_logs/EXP_001_live_run_1_20260831_181130_629284.csv; data/telemetry_logs/OPTUNA_LIVE_001_optuna_live_run_1_20260831_190722_745120.csv

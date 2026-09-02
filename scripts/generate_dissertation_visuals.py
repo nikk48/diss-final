@@ -770,7 +770,19 @@ def read_telemetry(path_value: object) -> pd.DataFrame:
     if path is None:
         return pd.DataFrame()
     df = read_csv_if_exists(path)
-    return numeric(df, ["lap_time", "speed", "throttle", "brake"])
+    telemetry_columns = [
+        "lap_time",
+        "speed",
+        "steering",
+        "steer",
+        "throttle",
+        "accel",
+        "brake",
+        "distance",
+        "dist_from_start",
+        "distFromStart",
+    ]
+    return numeric(df, telemetry_columns)
 
 
 def resolve_telemetry_path(path_value: object) -> Path | None:
@@ -855,6 +867,182 @@ def telemetry_profile(run_log: pd.DataFrame, records: list[FigureRecord]) -> Non
         "; ".join(sources),
         records,
         "Uses representative valid live telemetry files referenced in data/run_log.csv.",
+    )
+
+
+def choose_baseline_and_optuna_telemetry(run_log: pd.DataFrame) -> dict[str, pd.Series]:
+    if run_log.empty or "telemetry_file" not in run_log.columns:
+        return {}
+    df = valid_rows(run_log)
+    if df.empty:
+        return {}
+    df = df.copy()
+    for column in ["experiment_id", "source", "algorithm"]:
+        if column not in df.columns:
+            df[column] = ""
+    df = df[df["telemetry_file"].apply(lambda value: resolve_telemetry_path(value) is not None)]
+    if df.empty:
+        return {}
+
+    baseline = df[
+        (df["experiment_id"].astype(str) == "EXP_001")
+        & (df["source"].astype(str) == "live")
+        & (df["algorithm"].astype(str) == "rule_based")
+    ].copy()
+    optuna = df[
+        (df["experiment_id"].astype(str) == "OPTUNA_LIVE_001")
+        & (df["source"].astype(str) == "optuna_live")
+    ].copy()
+    selected: dict[str, pd.Series] = {}
+    if not baseline.empty:
+        selected["Verified baseline EXP_001"] = baseline.sort_values("telemetry_file").iloc[0]
+    if not optuna.empty:
+        selected["Optuna OPTUNA_LIVE_001"] = optuna.sort_values("telemetry_file").iloc[0]
+    return selected
+
+
+def prepare_profile_telemetry(row: pd.Series) -> tuple[pd.DataFrame, str]:
+    telemetry = read_telemetry(row.get("telemetry_file"))
+    if telemetry.empty:
+        return telemetry, "Simulation step"
+    if "lap_time" in telemetry.columns:
+        telemetry = telemetry[(telemetry["lap_time"].fillna(-1) >= 0)].copy()
+    if telemetry.empty:
+        return telemetry, "Simulation step"
+
+    distance_candidates = ["distance", "dist_from_start", "distFromStart"]
+    x_column = next(
+        (column for column in distance_candidates if column in telemetry.columns and telemetry[column].notna().any()),
+        None,
+    )
+    if x_column is None:
+        telemetry = telemetry.reset_index(drop=True)
+        telemetry["simulation_step"] = telemetry.index + 1
+        x_column = "simulation_step"
+        x_label = "Simulation step"
+    else:
+        x_label = "Distance"
+
+    if len(telemetry) > 900:
+        telemetry = telemetry.iloc[:: max(1, math.floor(len(telemetry) / 900))].copy()
+    return telemetry, x_label
+
+
+def plot_baseline_optuna_profile(
+    rows: dict[str, pd.Series],
+    figure_id: str,
+    title: str,
+    y_columns: list[tuple[str, str, str]],
+    y_label: str,
+    records: list[FigureRecord],
+) -> None:
+    fig, ax = plt.subplots(figsize=(10.5, 5.8))
+    plotted = 0
+    sources: list[str] = []
+    x_label = "Simulation step"
+    base_colors = {
+        "Verified baseline EXP_001": "#2563EB",
+        "Optuna OPTUNA_LIVE_001": "#B45309",
+    }
+
+    for row_label, row in rows.items():
+        telemetry_path = resolve_telemetry_path(row.get("telemetry_file"))
+        telemetry, x_label = prepare_profile_telemetry(row)
+        if telemetry.empty:
+            continue
+        x_column = "simulation_step"
+        if x_label == "Distance":
+            x_column = next(
+                column
+                for column in ["distance", "dist_from_start", "distFromStart"]
+                if column in telemetry.columns and telemetry[column].notna().any()
+            )
+        for column, suffix, linestyle in y_columns:
+            if column not in telemetry.columns or telemetry[column].dropna().empty:
+                continue
+            ax.plot(
+                telemetry[x_column],
+                telemetry[column],
+                label=f"{row_label} {suffix}".strip(),
+                color=base_colors.get(row_label, NEUTRAL),
+                linestyle=linestyle,
+                linewidth=1.6,
+            )
+            plotted += 1
+        if telemetry_path is not None:
+            sources.append(display_path(telemetry_path))
+
+    if plotted == 0:
+        plt.close(fig)
+        return
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    ax.set_title(title, fontsize=15, fontweight="bold", pad=14)
+    style_axis(ax)
+    ax.grid(True, color=GRID, linewidth=0.8)
+    if len(y_columns) > 1:
+        ax.legend(frameon=False, fontsize=8.2, loc="center left", bbox_to_anchor=(1.01, 0.5))
+    else:
+        ax.legend(frameon=False, fontsize=8.2, loc="best")
+    ax.text(
+        0,
+        -0.13,
+        "These plots show how the driving behaviour differs over the lap, not just the final lap time.",
+        transform=ax.transAxes,
+        fontsize=8.5,
+        color="#6B7280",
+    )
+    fig.tight_layout()
+
+    caption = (
+        "These plots show how the driving behaviour differs over the lap, not just "
+        "the final lap time."
+    )
+    save_figure(
+        fig,
+        figure_id,
+        title,
+        caption,
+        "; ".join(sources),
+        records,
+        "Uses one verified baseline live telemetry file and one verified Optuna live telemetry file referenced in data/run_log.csv.",
+    )
+
+
+def baseline_vs_optuna_telemetry(run_log: pd.DataFrame, records: list[FigureRecord]) -> None:
+    rows = choose_baseline_and_optuna_telemetry(run_log)
+    if len(rows) < 2:
+        return
+    plot_baseline_optuna_profile(
+        rows,
+        "fig_09a_speed_profile_baseline_vs_optuna",
+        "Speed profile: verified baseline versus Optuna",
+        [("speed", "", "-")],
+        "Speed (km/h)",
+        records,
+    )
+    steering_column = "steering"
+    sample_telemetry = read_telemetry(next(iter(rows.values())).get("telemetry_file"))
+    if steering_column not in sample_telemetry.columns and "steer" in sample_telemetry.columns:
+        steering_column = "steer"
+    plot_baseline_optuna_profile(
+        rows,
+        "fig_09b_steering_profile_baseline_vs_optuna",
+        "Steering profile: verified baseline versus Optuna",
+        [(steering_column, "", "-")],
+        "Steering command",
+        records,
+    )
+    throttle_column = "throttle"
+    if throttle_column not in sample_telemetry.columns and "accel" in sample_telemetry.columns:
+        throttle_column = "accel"
+    plot_baseline_optuna_profile(
+        rows,
+        "fig_09c_throttle_brake_profile_baseline_vs_optuna",
+        "Throttle and brake profile: verified baseline versus Optuna",
+        [(throttle_column, "throttle", "-"), ("brake", "brake", "--")],
+        "Control command value",
+        records,
     )
 
 
@@ -1003,6 +1191,7 @@ def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     records: list[FigureRecord] = []
 
+    run_log = read_csv_if_exists(DATA_DIR / "run_log.csv")
     summary_live = read_csv_if_exists(RESULTS_DIR / "summary_live.csv")
     robustness = read_csv_if_exists(RESULTS_DIR / "robustness_summary.csv")
     efficiency = read_csv_if_exists(RESULTS_DIR / "computational_efficiency_summary.csv")
@@ -1017,6 +1206,7 @@ def main() -> None:
     efficiency_visual(efficiency, records)
     sensitivity_visual(sensitivity, records)
     optuna_trial_history(optuna_trials, records)
+    baseline_vs_optuna_telemetry(run_log, records)
 
     write_captions(records)
     write_manifest(records)

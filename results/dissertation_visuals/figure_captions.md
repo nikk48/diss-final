@@ -127,3 +127,11 @@ Configurations favoured by dummy validation did not transfer to better live TORC
 - PNG: `results/dissertation_visuals/fig_11_dummy_to_live_transfer_gap.png`
 - SVG: `results/dissertation_visuals/fig_11_dummy_to_live_transfer_gap.svg`
 - Data source(s): results/summary_dummy.csv; results/summary_live.csv
+
+## fig_12_imported_partb_comparator
+
+The Part B PPO policy was developed outside Part C and is included only to demonstrate that the Part C framework can evaluate external policy artefacts using a common schema.
+
+- PNG: `results/dissertation_visuals/fig_12_imported_partb_comparator.png`
+- SVG: `results/dissertation_visuals/fig_12_imported_partb_comparator.svg`
+- Data source(s): results/summary_live.csv; results/summary_partb.csv

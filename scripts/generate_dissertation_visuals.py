@@ -1385,6 +1385,118 @@ def dummy_to_live_transfer_gap(
     )
 
 
+def imported_partb_comparator(
+    summary_live: pd.DataFrame,
+    summary_partb: pd.DataFrame,
+    records: list[FigureRecord],
+) -> None:
+    live = valid_rows(summary_live)
+    partb = valid_rows(summary_partb)
+    if live.empty or partb.empty:
+        return
+
+    live_sources = {"live", "grid_live", "optuna_live", "optuna_live_replay"}
+    live = live[live["source"].astype(str).isin(live_sources)].copy()
+    partb = partb[partb["source"].astype(str).eq("partb_imported")].copy()
+    if live.empty or partb.empty:
+        return
+
+    live = numeric(live, ["mean_lap_time", "best_lap_time", "valid_runs", "completion_rate"])
+    partb = numeric(partb, ["mean_lap_time", "best_lap_time", "valid_runs", "completion_rate"])
+    live_metric = "mean_lap_time" if "mean_lap_time" in live.columns else "best_lap_time"
+    partb_metric = "mean_lap_time" if "mean_lap_time" in partb.columns else "best_lap_time"
+    live = live.dropna(subset=[live_metric])
+    partb = partb.dropna(subset=[partb_metric])
+    if live.empty or partb.empty:
+        return
+
+    best_live = live.loc[live[live_metric].idxmin()]
+    best_partb = partb.loc[partb[partb_metric].idxmin()]
+    rows = pd.DataFrame(
+        [
+            {
+                "label": (
+                    f"Best verified Part C live result\n"
+                    f"{best_live.get('experiment_id')}\n"
+                    f"{best_live.get('source')} / {best_live.get('method', '')}"
+                ),
+                "value": float(best_live[live_metric]),
+                "source": str(best_live.get("source")),
+                "valid_runs": best_live.get("valid_runs"),
+                "completion_rate": best_live.get("completion_rate"),
+            },
+            {
+                "label": (
+                    "Imported Part B comparator — not Part C implementation\n"
+                    f"{best_partb.get('experiment_id')}\n"
+                    f"{best_partb.get('method', '')}"
+                ),
+                "value": float(best_partb[partb_metric]),
+                "source": "partb_imported",
+                "valid_runs": best_partb.get("valid_runs"),
+                "completion_rate": best_partb.get("completion_rate"),
+            },
+        ]
+    )
+
+    figure_id = "fig_12_imported_partb_comparator"
+    title = "Imported Part B comparator against best Part C live result"
+    fig, ax = plt.subplots(figsize=(10.5, 5.2))
+    y = list(range(len(rows)))
+    colors = [source_color(source) for source in rows["source"]]
+    bars = ax.barh(y, rows["value"], color=colors, edgecolor="#1F2937", linewidth=0.6)
+    ax.set_yticks(y, rows["label"])
+    ax.invert_yaxis()
+    ax.set_xlabel("Mean lap time (seconds, lower is better)")
+    ax.set_title(title, fontsize=15, fontweight="bold", pad=14)
+    style_axis(ax)
+    ax.grid(axis="x", color=GRID, linewidth=0.8)
+    ax.grid(axis="y", visible=False)
+    limit = max(float(rows["value"].max()) * 1.18, 1.0)
+    ax.set_xlim(0, limit)
+    for bar, (_, row) in zip(bars, rows.iterrows()):
+        value = float(row["value"])
+        run_text = ""
+        if pd.notna(row.get("valid_runs")):
+            run_text = f" | valid runs: {int(row['valid_runs'])}"
+        completion_text = ""
+        if pd.notna(row.get("completion_rate")):
+            completion_text = f" | completion: {float(row['completion_rate']) * 100:.0f}%"
+        ax.text(
+            value + limit * 0.018,
+            bar.get_y() + bar.get_height() / 2,
+            f"{value:.3f}s{run_text}{completion_text}",
+            va="center",
+            ha="left",
+            fontsize=8.5,
+            color=NEUTRAL,
+        )
+    ax.text(
+        0,
+        -0.16,
+        "Part B is shown in a separate comparator figure and is not claimed as a Part C implementation.",
+        transform=ax.transAxes,
+        fontsize=8.5,
+        color="#6B7280",
+    )
+    fig.tight_layout()
+
+    caption = (
+        "The Part B PPO policy was developed outside Part C and is included only "
+        "to demonstrate that the Part C framework can evaluate external policy "
+        "artefacts using a common schema."
+    )
+    save_figure(
+        fig,
+        figure_id,
+        title,
+        caption,
+        "results/summary_live.csv; results/summary_partb.csv",
+        records,
+        "Part B is isolated as an imported comparator artefact; it is not included in the main Part C live chart.",
+    )
+
+
 def optuna_trial_history(optuna_trials: pd.DataFrame, records: list[FigureRecord]) -> None:
     if optuna_trials.empty or "trial" not in optuna_trials.columns:
         return
@@ -1533,6 +1645,7 @@ def main() -> None:
     run_log = read_csv_if_exists(DATA_DIR / "run_log.csv")
     summary_live = read_csv_if_exists(RESULTS_DIR / "summary_live.csv")
     summary_dummy = read_csv_if_exists(RESULTS_DIR / "summary_dummy.csv")
+    summary_partb = read_csv_if_exists(RESULTS_DIR / "summary_partb.csv")
     robustness = read_csv_if_exists(RESULTS_DIR / "robustness_summary.csv")
     efficiency = read_csv_if_exists(RESULTS_DIR / "computational_efficiency_summary.csv")
     sensitivity = read_csv_if_exists(RESULTS_DIR / "hyperparameter_sensitivity.csv")
@@ -1549,6 +1662,7 @@ def main() -> None:
     baseline_vs_optuna_telemetry(run_log, records)
     racing_line_or_track_position(run_log, records)
     dummy_to_live_transfer_gap(summary_dummy, summary_live, records)
+    imported_partb_comparator(summary_live, summary_partb, records)
 
     write_captions(records)
     write_manifest(records)

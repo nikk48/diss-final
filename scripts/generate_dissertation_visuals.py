@@ -257,7 +257,7 @@ def evidence_source_map(records: list[FigureRecord]) -> None:
         ("Dummy validation evidence", "validates pipeline only", "#F3F4F6", "summary_dummy.csv", 5.7),
         ("Live TORCS Part C evidence", "supports Part C live performance", "#EFF6FF", "summary_live.csv", 4.2),
         ("Stress-test evidence", "supports robustness exploration", "#F5F3FF", "summary_stress.csv", 2.7),
-        ("Part B PPO results", "imported comparator only", "#FDF2F8", "summary_partb.csv", 1.2),
+        ("Imported Part B comparator evidence", "comparator artefact only", "#FDF2F8", "summary_partb.csv", 1.2),
     ]
     for name, role, fill, summary, y in streams:
         draw_box(ax, (0.5, y), 2.25, 0.82, f"{name}\n{role}", face=fill, fontsize=8)

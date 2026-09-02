@@ -16,12 +16,12 @@ Figure 2. Evidence streams are separated before comparison: dummy rows validate 
 - SVG: `results/dissertation_visuals/fig_02_evidence_source_map.svg`
 - Data source(s): results/summary_dummy.csv, results/summary_live.csv, results/summary_stress.csv, results/summary_partb.csv, results/comparison_summary.csv
 
-## fig_03_live_torcs_performance
+## fig_03_live_lap_time_comparison
 
-Figure 3. Live TORCS Part C performance comparison using valid completed runs only. Optuna live evidence is shown separately from baseline and grid search evidence.
+Lower lap time is better. This figure compares only Part C live TORCS configurations, excluding dummy validation and imported Part B evidence.
 
-- PNG: `results/dissertation_visuals/fig_03_live_torcs_performance.png`
-- SVG: `results/dissertation_visuals/fig_03_live_torcs_performance.svg`
+- PNG: `results/dissertation_visuals/fig_03_live_lap_time_comparison.png`
+- SVG: `results/dissertation_visuals/fig_03_live_lap_time_comparison.svg`
 - Data source(s): results/summary_live.csv
 
 ## fig_04_cross_source_comparison

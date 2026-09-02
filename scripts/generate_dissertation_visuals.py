@@ -295,11 +295,30 @@ def live_performance(summary_live: pd.DataFrame, records: list[FigureRecord]) ->
     df = valid_rows(summary_live)
     if df.empty:
         return
+    allowed_sources = {"live", "grid_live", "optuna_live", "optuna_live_replay", "stress_live"}
+    df = df[df["source"].isin(allowed_sources)].copy()
+    if df.empty:
+        return
+
+    method = df["method"].astype(str) if "method" in df.columns else df["algorithm"].astype(str)
+    include = (
+        (
+            (df["experiment_id"].astype(str) == "EXP_001")
+            & (df["source"].astype(str) == "live")
+            & (method == "rule_based")
+        )
+        | df["experiment_id"].astype(str).isin({"GRID_030", "GRID_040", "OPTUNA_LIVE_001"})
+        | df["source"].astype(str).isin({"optuna_live_replay", "stress_live"})
+    )
+    df = df[include].copy()
+    if df.empty:
+        return
+
     df = numeric(df, ["mean_lap_time", "best_lap_time", "completion_rate"]).sort_values(
         "mean_lap_time"
     )
-    figure_id = "fig_03_live_torcs_performance"
-    title = "Live TORCS Part C Performance"
+    figure_id = "fig_03_live_lap_time_comparison"
+    title = "Verified live TORCS mean lap time by configuration"
     labels = [method_label(row) for _, row in df.iterrows()]
     colors = [source_color(row.get("source")) for _, row in df.iterrows()]
 
@@ -330,9 +349,8 @@ def live_performance(summary_live: pd.DataFrame, records: list[FigureRecord]) ->
     )
 
     caption = (
-        "Figure 3. Live TORCS Part C performance comparison using valid completed "
-        "runs only. Optuna live evidence is shown separately from baseline and grid "
-        "search evidence."
+        "Lower lap time is better. This figure compares only Part C live TORCS "
+        "configurations, excluding dummy validation and imported Part B evidence."
     )
     save_figure(
         fig,

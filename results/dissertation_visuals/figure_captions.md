@@ -80,10 +80,10 @@ Figure 7d. Steer gain plotted against mean lap time for live Part C experiments.
 - SVG: `results/dissertation_visuals/fig_07d_steer_gain_sensitivity.svg`
 - Data source(s): results/hyperparameter_sensitivity.csv
 
-## fig_08_live_telemetry_speed_profiles
+## fig_08_optuna_trial_history
 
-Figure 8. Speed profiles from representative valid live telemetry files, showing how the Part C controller behaves over a lap.
+Optuna was used as an automated hyperparameter optimisation extension. Lower objective score indicates better balance of lap time, completion and penalty metrics.
 
-- PNG: `results/dissertation_visuals/fig_08_live_telemetry_speed_profiles.png`
-- SVG: `results/dissertation_visuals/fig_08_live_telemetry_speed_profiles.svg`
-- Data source(s): data/telemetry_logs/EXP_001_live_run_1_20260831_181130_629284.csv; data/telemetry_logs/GRID_040_grid_live_run_1_20260831_190630_762814.csv; data/telemetry_logs/OPTUNA_LIVE_001_optuna_live_run_1_20260831_190722_745120.csv
+- PNG: `results/dissertation_visuals/fig_08_optuna_trial_history.png`
+- SVG: `results/dissertation_visuals/fig_08_optuna_trial_history.svg`
+- Data source(s): results/optuna_trials.csv

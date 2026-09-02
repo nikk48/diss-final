@@ -858,6 +858,98 @@ def telemetry_profile(run_log: pd.DataFrame, records: list[FigureRecord]) -> Non
     )
 
 
+def optuna_trial_history(optuna_trials: pd.DataFrame, records: list[FigureRecord]) -> None:
+    if optuna_trials.empty or "trial" not in optuna_trials.columns:
+        return
+    score_column = None
+    score_label = None
+    for candidate, label in [
+        ("objective_score", "Objective score (lower is better)"),
+        ("balanced_score", "Balanced objective score (lower is better)"),
+        ("mean_lap_time", "Mean lap time (seconds, lower is better)"),
+        ("average_lap_time", "Mean lap time (seconds, lower is better)"),
+    ]:
+        if candidate in optuna_trials.columns:
+            score_column = candidate
+            score_label = label
+            break
+    if score_column is None or score_label is None:
+        return
+
+    df = numeric(optuna_trials, ["trial", score_column]).dropna(subset=["trial", score_column])
+    if df.empty:
+        return
+    df = df.sort_values("trial")
+    best = df.loc[df[score_column].idxmin()]
+
+    figure_id = "fig_08_optuna_trial_history"
+    title = "Optuna search progress"
+    fig, ax = plt.subplots(figsize=(9, 5.6))
+    ax.plot(
+        df["trial"],
+        df[score_column],
+        color="#B45309",
+        linewidth=1.8,
+        marker="o",
+        markersize=6,
+        markeredgecolor="#111827",
+    )
+    ax.scatter(
+        [best["trial"]],
+        [best[score_column]],
+        s=150,
+        color="#2563EB",
+        edgecolor="#111827",
+        linewidth=0.8,
+        zorder=4,
+        label="Best trial",
+    )
+    best_label = f"Best trial {int(best['trial'])}: {best[score_column]:.3f}"
+    ax.annotate(
+        best_label,
+        (best["trial"], best[score_column]),
+        xytext=(8, 12),
+        textcoords="offset points",
+        fontsize=9,
+        color=NEUTRAL,
+        arrowprops={"arrowstyle": "->", "color": "#6B7280", "linewidth": 0.8},
+    )
+    ax.set_xlabel("Trial number")
+    ax.set_ylabel(score_label)
+    ax.set_title(title, fontsize=15, fontweight="bold", pad=14)
+    style_axis(ax)
+    ax.grid(True, color=GRID, linewidth=0.8)
+    if len(df) == 1:
+        trial = float(df["trial"].iloc[0])
+        score = float(df[score_column].iloc[0])
+        ax.set_xlim(trial - 0.5, trial + 0.5)
+        ax.set_ylim(score * 0.995, score * 1.005)
+        ax.text(
+            0,
+            -0.14,
+            "Only one Optuna trial is currently recorded; add more trials for a clearer search-progress curve.",
+            transform=ax.transAxes,
+            fontsize=8.5,
+            color="#6B7280",
+        )
+    ax.legend(frameon=False, loc="best", fontsize=8.5)
+
+    caption = (
+        "Optuna was used as an automated hyperparameter optimisation extension. "
+        "Lower objective score indicates better balance of lap time, completion "
+        "and penalty metrics."
+    )
+    save_figure(
+        fig,
+        figure_id,
+        title,
+        caption,
+        "results/optuna_trials.csv",
+        records,
+        f"Y-axis uses {score_column}; best trial is the lowest available value.",
+    )
+
+
 def write_captions(records: list[FigureRecord]) -> None:
     path = OUTPUT_DIR / "figure_captions.md"
     lines = ["# Dissertation Visual Captions", ""]
@@ -911,11 +1003,11 @@ def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     records: list[FigureRecord] = []
 
-    run_log = read_csv_if_exists(DATA_DIR / "run_log.csv")
     summary_live = read_csv_if_exists(RESULTS_DIR / "summary_live.csv")
     robustness = read_csv_if_exists(RESULTS_DIR / "robustness_summary.csv")
     efficiency = read_csv_if_exists(RESULTS_DIR / "computational_efficiency_summary.csv")
     sensitivity = read_csv_if_exists(RESULTS_DIR / "hyperparameter_sensitivity.csv")
+    optuna_trials = read_csv_if_exists(RESULTS_DIR / "optuna_trials.csv")
 
     framework_diagram(records)
     evidence_source_map(records)
@@ -924,7 +1016,7 @@ def main() -> None:
     robustness_visual(robustness, records)
     efficiency_visual(efficiency, records)
     sensitivity_visual(sensitivity, records)
-    telemetry_profile(run_log, records)
+    optuna_trial_history(optuna_trials, records)
 
     write_captions(records)
     write_manifest(records)

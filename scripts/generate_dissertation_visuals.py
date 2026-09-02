@@ -778,9 +778,22 @@ def read_telemetry(path_value: object) -> pd.DataFrame:
         "throttle",
         "accel",
         "brake",
+        "track_position",
+        "trackPos",
+        "track_pos",
         "distance",
         "dist_from_start",
         "distFromStart",
+        "x",
+        "y",
+        "pos_x",
+        "pos_y",
+        "position_x",
+        "position_y",
+        "world_x",
+        "world_y",
+        "x_position",
+        "y_position",
     ]
     return numeric(df, telemetry_columns)
 
@@ -1046,6 +1059,152 @@ def baseline_vs_optuna_telemetry(run_log: pd.DataFrame, records: list[FigureReco
     )
 
 
+def first_available_column(df: pd.DataFrame, candidates: list[str]) -> str | None:
+    for column in candidates:
+        if column in df.columns and df[column].notna().any():
+            return column
+    return None
+
+
+def racing_line_or_track_position(run_log: pd.DataFrame, records: list[FigureRecord]) -> None:
+    rows = choose_baseline_and_optuna_telemetry(run_log)
+    if len(rows) < 2:
+        return
+
+    figure_id = "fig_10_racing_line_or_track_position_map"
+    coordinate_pairs = [
+        ("x", "y"),
+        ("pos_x", "pos_y"),
+        ("position_x", "position_y"),
+        ("world_x", "world_y"),
+        ("x_position", "y_position"),
+    ]
+    telemetry_by_label: dict[str, tuple[pd.DataFrame, Path | None]] = {}
+    for row_label, row in rows.items():
+        telemetry_path = resolve_telemetry_path(row.get("telemetry_file"))
+        telemetry, _ = prepare_profile_telemetry(row)
+        if not telemetry.empty:
+            telemetry_by_label[row_label] = (telemetry, telemetry_path)
+    if len(telemetry_by_label) < 2:
+        return
+
+    coord_pair = None
+    for x_column, y_column in coordinate_pairs:
+        if all(
+            x_column in telemetry.columns
+            and y_column in telemetry.columns
+            and telemetry[x_column].notna().any()
+            and telemetry[y_column].notna().any()
+            for telemetry, _ in telemetry_by_label.values()
+        ):
+            coord_pair = (x_column, y_column)
+            break
+
+    fig, ax = plt.subplots(figsize=(10.5, 5.8))
+    sources: list[str] = []
+    colors = {
+        "Verified baseline EXP_001": "#2563EB",
+        "Optuna OPTUNA_LIVE_001": "#B45309",
+    }
+
+    if coord_pair is not None:
+        title = "Racing-line comparison: baseline versus Optuna"
+        x_column, y_column = coord_pair
+        for row_label, (telemetry, telemetry_path) in telemetry_by_label.items():
+            ax.plot(
+                telemetry[x_column],
+                telemetry[y_column],
+                label=row_label,
+                color=colors.get(row_label, NEUTRAL),
+                linewidth=1.7,
+            )
+            if telemetry_path is not None:
+                sources.append(display_path(telemetry_path))
+        ax.set_xlabel("X position")
+        ax.set_ylabel("Y position")
+        ax.set_aspect("equal", adjustable="datalim")
+        caption = (
+            "Figure 10. Racing-line comparison using telemetry x/y coordinates for "
+            "one verified baseline run and one verified Optuna run."
+        )
+        note = "Uses x/y telemetry coordinates; baseline and Optuna trajectories are shown on the same axes."
+    else:
+        title = "Track-position profile: baseline versus Optuna"
+        track_column = None
+        for telemetry, _ in telemetry_by_label.values():
+            track_column = first_available_column(telemetry, ["track_position", "trackPos", "track_pos"])
+            if track_column is not None:
+                break
+        if track_column is None:
+            plt.close(fig)
+            return
+        for row_label, (telemetry, telemetry_path) in telemetry_by_label.items():
+            if track_column not in telemetry.columns:
+                continue
+            x_column = "simulation_step"
+            x_label = "Simulation step"
+            distance_column = first_available_column(
+                telemetry,
+                ["distance", "dist_from_start", "distFromStart"],
+            )
+            if distance_column is not None:
+                x_column = distance_column
+                x_label = "Distance"
+            ax.plot(
+                telemetry[x_column],
+                telemetry[track_column],
+                label=row_label,
+                color=colors.get(row_label, NEUTRAL),
+                linewidth=1.7,
+            )
+            if telemetry_path is not None:
+                sources.append(display_path(telemetry_path))
+        ax.axhline(0, color="#111827", linewidth=0.9, linestyle="-", alpha=0.75)
+        for boundary, label_y in [(-1, "Approx. left boundary"), (1, "Approx. right boundary")]:
+            ax.axhline(boundary, color="#6B7280", linewidth=0.9, linestyle="--", alpha=0.8)
+            ax.text(
+                0.01,
+                boundary,
+                label_y,
+                transform=ax.get_yaxis_transform(),
+                va="bottom" if boundary < 0 else "top",
+                ha="left",
+                fontsize=8,
+                color="#6B7280",
+            )
+        ax.set_xlabel(x_label)
+        ax.set_ylabel("Track-position value")
+        caption = (
+            "Figure 10. Telemetry does not include x/y position coordinates, so this "
+            "is a track-position profile rather than a real racing-line map."
+        )
+        note = "No x/y telemetry coordinates were available; track-position profile uses the normalized track position signal."
+
+    ax.set_title(title, fontsize=15, fontweight="bold", pad=14)
+    style_axis(ax)
+    ax.grid(True, color=GRID, linewidth=0.8)
+    ax.legend(frameon=False, fontsize=8.5, loc="best")
+    ax.text(
+        0,
+        -0.13,
+        "This compares where the controller keeps the car relative to the track centre over the lap.",
+        transform=ax.transAxes,
+        fontsize=8.5,
+        color="#6B7280",
+    )
+    fig.tight_layout()
+
+    save_figure(
+        fig,
+        figure_id,
+        title,
+        caption,
+        "; ".join(dict.fromkeys(sources)),
+        records,
+        note,
+    )
+
+
 def optuna_trial_history(optuna_trials: pd.DataFrame, records: list[FigureRecord]) -> None:
     if optuna_trials.empty or "trial" not in optuna_trials.columns:
         return
@@ -1207,6 +1366,7 @@ def main() -> None:
     sensitivity_visual(sensitivity, records)
     optuna_trial_history(optuna_trials, records)
     baseline_vs_optuna_telemetry(run_log, records)
+    racing_line_or_track_position(run_log, records)
 
     write_captions(records)
     write_manifest(records)

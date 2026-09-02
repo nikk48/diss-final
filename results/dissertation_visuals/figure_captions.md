@@ -111,3 +111,11 @@ These plots show how the driving behaviour differs over the lap, not just the fi
 - PNG: `results/dissertation_visuals/fig_09c_throttle_brake_profile_baseline_vs_optuna.png`
 - SVG: `results/dissertation_visuals/fig_09c_throttle_brake_profile_baseline_vs_optuna.svg`
 - Data source(s): data/telemetry_logs/EXP_001_live_run_1_20260831_181130_629284.csv; data/telemetry_logs/OPTUNA_LIVE_001_optuna_live_run_1_20260831_190722_745120.csv
+
+## fig_10_racing_line_or_track_position_map
+
+Figure 10. Telemetry does not include x/y position coordinates, so this is a track-position profile rather than a real racing-line map.
+
+- PNG: `results/dissertation_visuals/fig_10_racing_line_or_track_position_map.png`
+- SVG: `results/dissertation_visuals/fig_10_racing_line_or_track_position_map.svg`
+- Data source(s): data/telemetry_logs/EXP_001_live_run_1_20260831_181130_629284.csv; data/telemetry_logs/OPTUNA_LIVE_001_optuna_live_run_1_20260831_190722_745120.csv

@@ -125,6 +125,18 @@ Required charts are saved in `results/charts/`:
 - `runtime_or_decision_latency_comparison.png`
 - `balanced_score_by_configuration.png`
 
+## Dissertation Visuals
+
+Generate non-technical, dissertation-ready Part C visuals:
+
+```bash
+python scripts/generate_dissertation_visuals.py
+```
+
+The script writes 300 DPI PNG files, SVG files, captions and a manifest to
+`results/dissertation_visuals/`. The visuals keep dummy, live, stress and
+imported Part B comparator evidence clearly labelled.
+
 ## Optuna
 
 Validate Optuna in dummy mode first:
